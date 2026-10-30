@@ -41,12 +41,22 @@ function G:Init()
     f:SetScript("OnEvent", function(_, event, ...) G[event](G, ...) end)
 end
 
+-- Expansion casts can carry the expansion's name: Midnight's ore cast is
+-- "Midnight Mining" (471013), so matching only the base names missed every
+-- Midnight ore (found 2026-10-30: herbs saved, ore never). A name that ENDS in
+-- the base word counts too.
+local SUFFIX_KIND = { { "Mining$", "mining" }, { "Skinning$", "skin" }, { "Herb Gathering$", "herb" } }
+
 local function kindFor(spellID)
     if not spellID or secret(spellID) then return nil end
     local k = kindBySpellID[spellID]
     if k then return k end
     local name = C_Spell.GetSpellName(spellID)
-    if name and not secret(name) then return kindBySpellName[name] end
+    if not name or secret(name) then return nil end
+    if kindBySpellName[name] then return kindBySpellName[name] end
+    for _, s in ipairs(SUFFIX_KIND) do
+        if name:find(s[1]) then return s[2] end
+    end
 end
 
 function G:UNIT_SPELLCAST_SENT(unit, target, castGUID, spellID)

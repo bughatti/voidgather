@@ -17,6 +17,13 @@ VoidGather builds your gathering routes as you play. Every vein, herb, skinnable
 - **Click a pin for a waypoint** — Blizzard's waypoint and arrow, cleared when you arrive
 - **Minimap pins** fade near the edge of the minimap so close spots stand out
 
+### Skill-ups: where to level Herbalism and Mining
+- **Pins show if they still give you skill**, in the profession window's colors: an **orange** outline always gives a point, **yellow** usually, **green** rarely, and **grey** never (grey pins fade). Black means no skill info, such as an older expansion's node
+- **Uses your real Midnight skill** and the game's own skill thresholds for each node
+- **Where to go**: the map menu shows your skill, what gives points right now, and a **Go:** button that sets a waypoint to the best known spot. `/vg best` does the same from chat
+- **"Only nodes that give skill"** in the map menu hides the grey ones
+- Turns itself off once you're maxed, so farming pins don't all go grey
+
 ### Shared with other players
 - **Live sharing** — when another VoidGather player gathers a new spot on your realm, it shows up on your map
 - **Zone catch-up** — entering a zone asks other players for the spots they know there
@@ -29,7 +36,7 @@ VoidGather builds your gathering routes as you play. Every vein, herb, skinnable
 - **Auto-switch Find Minerals / Find Herbs** (optional) — for miner-herbalists where only one tracker can run at a time; it only flips while you're moving and out of combat
 
 ### Map menu
-- **A button on the world map** with show/hide filters for mining, herbs, skinning and lumber (with counts for the zone), "only my professions", world map dots, minimap pins, auto-switch and sharing
+- **A button on the world map** with your skill-ups and where to go, show/hide filters for mining, herbs, skinning and lumber (with counts for the zone), "only nodes that give skill", "only my professions", world map dots, minimap pins, auto-switch and sharing
 
 ---
 
@@ -38,6 +45,7 @@ VoidGather builds your gathering routes as you play. Every vein, herb, skinnable
 | Command | What it does |
 |---|---|
 | `/vg` | Show all commands |
+| `/vg best` | Waypoint to the best known spot for your Herbalism or Mining skill-ups |
 | `/vg zone` | How many spots are known in this zone (yours and shared) |
 | `/vg stats` | This session's gathered loot |
 | `/vg reset` | Reset the session tally |

@@ -35,8 +35,18 @@ function VoidGatherPinMixin:OnAcquired(rec, mapID, shared)
     local side = math.floor(size * 0.75 + 0.5)
     self.icon:SetSize(side, side)
     self.icon:SetVertexColor(def.color[1], def.color[2], def.color[3])
+    -- outline = skill-up color (orange / yellow / green / grey) when it applies,
+    -- else the plain dark one. Same size either way: a thicker colored outline
+    -- made those diamonds look bigger than the rest (the user, 2026-10-30).
+    local c = VG.Skill:Color(rec.k, rec.n)
+    local col = c and VG.Skill.COLORS[c]
+    if col then
+        self.ring:SetVertexColor(col[1], col[2], col[3])
+    else
+        self.ring:SetVertexColor(0, 0, 0)
+    end
     self.ring:SetSize(side + 2, side + 2)
-    self:SetAlpha(VG:PinAlpha(rec, shared))
+    self:SetAlpha(VG:PinAlpha(rec, shared) * (c == "grey" and 0.35 or 1))
     self:Show()
 end
 
@@ -51,6 +61,7 @@ function VoidGatherPinMixin:OnMouseEnter()
     GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
     GameTooltip:AddLine(r.n ~= "?" and r.n or def.label, 1, 1, 1)
     GameTooltip:AddLine(def.label, def.color[1], def.color[2], def.color[3])
+    VG.Skill:Tooltip(r)
     VG:TooltipSource(r, self.shared)
     GameTooltip:AddLine("Click for a waypoint", 0.6, 0.6, 0.6)
     GameTooltip:Show()
@@ -94,12 +105,12 @@ function VoidGatherDataProviderMixin:RefreshAllData()
     if not mapID then return end
     if not VG:Config().showWorld then return end
     for _, rec in ipairs(VG:SharedFor(mapID)) do
-        if VG:Visible(rec.k) then
+        if VG:Visible(rec.k) and not VG.Skill:Hidden(rec) then
             map:AcquirePin(PIN_TEMPLATE, rec, mapID, true)
         end
     end
     for _, rec in ipairs(VG:NodesFor(mapID)) do
-        if VG:Visible(rec.k) then
+        if VG:Visible(rec.k) and not VG.Skill:Hidden(rec) then
             map:AcquirePin(PIN_TEMPLATE, rec, mapID, false)
         end
     end

@@ -11,6 +11,21 @@ local function generator(_, root)
     local cfg = VG:Config()
     local mapID = WorldMapFrame and WorldMapFrame:GetMapID()
     local counts, shared = VG:CountNodes(mapID)
+    -- your skill and which nodes give it now (Skill.lua), for the professions you have
+    local any = false
+    for _, k in ipairs({ "herb", "mining" }) do
+        local line = VG.Skill:Summary(k)
+        if line then
+            if not any then root:CreateTitle("Skill-ups"); any = true end
+            root:CreateTitle(line)
+            -- where to go: the best known spot, click for a waypoint
+            local spot = VG.Skill:BestSpots(k, 1)[1]
+            if spot then
+                root:CreateButton("  Go: " .. VG.Skill:SpotText(spot), function() VG.Skill:GoBest(k) end)
+            end
+        end
+    end
+    if any then root:CreateDivider() end
     root:CreateTitle("VoidGather — show on map")
     for _, k in ipairs(VG.KIND_ORDER) do
         local def = VG.KINDS[k]
@@ -21,6 +36,9 @@ local function generator(_, root)
             function() cfg.show[k] = not (cfg.show[k] ~= false); VG:Refresh(); return refresh() end)
     end
     root:CreateDivider()
+    root:CreateCheckbox("Only nodes that give skill",
+        function() return cfg.skillOnly end,
+        function() cfg.skillOnly = not cfg.skillOnly; VG:Refresh(); return refresh() end)
     root:CreateCheckbox("Only my professions",
         function() return cfg.onlyMine end,
         function() cfg.onlyMine = not cfg.onlyMine; VG:Refresh(); return refresh() end)

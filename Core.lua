@@ -9,6 +9,8 @@
 --
 -- Files:
 --   Core.lua      namespace, kinds, config, node database, slash
+--   GatherData.lua  each node's skill thresholds (generated, Blizzard game tables)
+--   Skill.lua     which nodes still give you skill (pin colors, filter)
 --   Gather.lua    detects gathers (UNIT_SPELLCAST_SENT/SUCCEEDED + loot)
 --   Sync.lua      shares spots with other players (hidden VoidGatherNet channel)
 --   Waypoint.lua  click a pin -> Blizzard waypoint + arrow
@@ -27,7 +29,7 @@ VG.PREFIX = "|cff00c7ffVoidGather|r"
 -- (retail uses many spell IDs, Forever/Classic use these base ones).
 VG.KINDS = {
     mining = { label = "Mining",       icon = "Interface\\Icons\\Trade_Mining",
-               color = { 0.30, 0.55, 1.00 }, spells = { 2575, 2576, 3564, 10248 },
+               color = { 0.30, 0.55, 1.00 }, spells = { 2575, 2576, 3564, 10248, 471013 },   -- 471013 = "Midnight Mining"
                merge = 12 },
     herb   = { label = "Herbalism",    icon = "Interface\\Icons\\Trade_Herbalism",
                color = { 0.30, 1.00, 0.30 }, spells = { 2366, 2368, 3570, 11993 },
@@ -56,6 +58,7 @@ VG.defaults = {
     share = true,           -- send/receive spots over VoidGatherNet (see Sync.lua)
     showWorld = true,       -- dots on the world map (minimap pins are separate)
     onlyMine = true,        -- hide kinds you can't gather (lumber always shows)
+    skillOnly = false,      -- hide nodes that no longer give you skill (see Skill.lua)
 }
 
 function VG:Config()
@@ -270,6 +273,24 @@ SlashCmdList.VOIDGATHER = function(msg)
         cfg.autoTrack = not cfg.autoTrack
         if VG.Tracking then VG.Tracking:Apply() end
         print(VG.PREFIX .. " auto-switch Find Minerals/Herbs " .. (cfg.autoTrack and "|cff33ff33on|r" or "|cffff5555off|r"))
+    elseif msg == "best" then
+        -- each profession you're leveling: where to go; the waypoint goes to the stronger spot
+        local any, best, bestKind = false, nil, nil
+        for _, k in ipairs({ "herb", "mining" }) do
+            local lv = VG.Skill:Level(k)
+            if lv and lv[1] < lv[2] then
+                any = true
+                local spot = VG.Skill:BestSpots(k, 1)[1]
+                local label = VG.SKILLUP[k].label
+                print(("%s %s: %s"):format(VG.PREFIX, label, spot and VG.Skill:SpotText(spot) or "no known spot that gives you skill yet"))
+                if spot and (not best or spot.score > best.score) then best, bestKind = spot, k end
+            end
+        end
+        if not any then
+            print(VG.PREFIX .. " no Herbalism or Mining to level on this character.")
+        elseif best then
+            VG.Nav:Goto(best.mapID, best.x, best.y, VG.SKILLUP[bestKind].label .. " skill-ups")
+        end
     elseif msg == "stats" then
         VG.Gather:PrintSession()
     elseif msg == "reset" then
@@ -298,6 +319,7 @@ SlashCmdList.VOIDGATHER = function(msg)
     else
         print(VG.PREFIX .. " — gathered spots show on your map automatically. Map button (top right of the world map) for filters.")
         print("  /vg stats — this session's loot · /vg zone — spots known here · /vg track — auto-switch Find Minerals/Herbs")
+        print("  /vg best — waypoint to the best known spot for your Herbalism / Mining skill-ups")
         print("  /vg mining | herb | skin | lumber — show/hide · /vg minimap — minimap pins")
         print("  /vg share — share spots with other players on/off · /vg net — test the sharing channel")
     end

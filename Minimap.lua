@@ -24,6 +24,10 @@ local function acquire()
         p.ring = p:CreateTexture(nil, "BACKGROUND")
         p.ring:SetAtlas("WhiteCircle-RaidBlips")
         p.ring:SetPoint("CENTER")
+        -- skill-up frame: a solid square 2px around the (square) icon. The round
+        -- ring hides behind the icon, so its color never showed (seen 2026-10-30).
+        p.frame = p:CreateTexture(nil, "BACKGROUND", nil, 1)
+        p.frame:SetPoint("CENTER")
         p.icon = p:CreateTexture(nil, "ARTWORK")
         p.icon:SetAllPoints()
         p.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
@@ -33,6 +37,7 @@ local function acquire()
             if not r then return end
             GameTooltip:SetOwner(self, "ANCHOR_TOP")
             GameTooltip:AddLine(r.n ~= "?" and r.n or VG.KINDS[r.k].label, 1, 1, 1)
+            VG.Skill:Tooltip(r)
             VG:TooltipSource(r, self.shared)
             GameTooltip:Show()
         end)
@@ -81,7 +86,7 @@ function MM:Update()
     local function place(list, shared)
         local size = shared and baseSize - 2 or baseSize
         for _, r in ipairs(list) do
-            if vis[r.k] then
+            if vis[r.k] and not VG.Skill:Hidden(r) then
                 local sx = (r.x - px) * w * scale
                 local sy = -((r.y - py) * h) * scale
                 if rotate then sx, sy = sx * cosF + sy * sinF, -sx * sinF + sy * cosF end
@@ -93,9 +98,19 @@ function MM:Update()
                     p:SetSize(size, size)
                     p.ring:SetSize(size + 3, size + 3)
                     p.ring:SetVertexColor(def.color[1], def.color[2], def.color[3])
+                    -- skill-up color as a frame around the icon (see Skill.lua)
+                    local c = VG.Skill:Color(r.k, r.n)
+                    local col = c and VG.Skill.COLORS[c]
+                    if col then
+                        p.frame:SetSize(size + 4, size + 4)
+                        p.frame:SetColorTexture(col[1], col[2], col[3])
+                        p.frame:Show()
+                    else
+                        p.frame:Hide()
+                    end
                     p.icon:SetTexture(def.icon)
                     local edge = dist2 > (half * 0.75) ^ 2 and 0.55 or 1
-                    p:SetAlpha(edge * VG:PinAlpha(r, shared))
+                    p:SetAlpha(edge * VG:PinAlpha(r, shared) * (c == "grey" and 0.35 or 1))
                     p:ClearAllPoints()
                     p:SetPoint("CENTER", Minimap, "CENTER", sx, sy)
                 end

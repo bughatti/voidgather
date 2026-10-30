@@ -1,0 +1,21 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/">
+    <!--
+        VoidGather world-map pin. Mixin lives in Pins.lua (loaded first).
+        No <Scripts>: the MapCanvas framework wires OnLoad/OnAcquired and
+        OnEnter/OnLeave/OnMouseUp from the mixin itself (declaring them here
+        trips an assert in Blizzard_MapCanvas). enableMouse at template level.
+    -->
+    <Frame name="VoidGatherPinTemplate" mixin="VoidGatherPinMixin" enableMouse="true" frameStrata="FULLSCREEN" virtual="true">
+        <Size x="16" y="16"/>
+        <Layers>
+            <Layer level="BACKGROUND">
+                <Texture parentKey="ring">
+                    <Anchors><Anchor point="CENTER"/></Anchors>
+                </Texture>
+            </Layer>
+            <Layer level="ARTWORK">
+                <Texture parentKey="icon" setAllPoints="true"/>
+            </Layer>
+        </Layers>
+    </Frame>
+</Ui>

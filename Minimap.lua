@@ -1,0 +1,113 @@
+----------------------------------------------------------------------
+-- VoidGather — Minimap pins
+-- The minimap isn't a MapCanvas, so place pins by hand: map offset ->
+-- yards (C_Map.GetMapWorldSize) -> minimap pixels (C_Minimap.GetViewRadius),
+-- rotated when the minimap rotates. Same math as VoidSweep's minimap layer.
+-- Pins at the edge of the minimap's range stay faint; close ones solid.
+----------------------------------------------------------------------
+local ADDON, VG = ...
+VG.Minimap = {}
+local MM = VG.Minimap
+
+-- Repositioned EVERY frame (no tick): the minimap scrolls per frame, so a 0.1s
+-- cadence made pins lag then snap -- visible jitter while flying (2026-10-21).
+-- Node lists are cached per map, so per-frame work is arithmetic + SetPoint.
+local pool, nActive = {}, 0
+local cacheMap, cacheOwn, cacheShared
+
+local function acquire()
+    nActive = nActive + 1
+    local p = pool[nActive]
+    if not p then
+        p = CreateFrame("Frame", nil, Minimap)
+        p:SetFrameLevel(Minimap:GetFrameLevel() + 5)
+        p.ring = p:CreateTexture(nil, "BACKGROUND")
+        p.ring:SetAtlas("WhiteCircle-RaidBlips")
+        p.ring:SetPoint("CENTER")
+        p.icon = p:CreateTexture(nil, "ARTWORK")
+        p.icon:SetAllPoints()
+        p.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
+        p:EnableMouse(true)
+        p:SetScript("OnEnter", function(self)
+            local r = self.rec
+            if not r then return end
+            GameTooltip:SetOwner(self, "ANCHOR_TOP")
+            GameTooltip:AddLine(r.n ~= "?" and r.n or VG.KINDS[r.k].label, 1, 1, 1)
+            VG:TooltipSource(r, self.shared)
+            GameTooltip:Show()
+        end)
+        p:SetScript("OnLeave", function() GameTooltip:Hide() end)
+        pool[nActive] = p
+    end
+    p:Show()
+    return p
+end
+
+local function hideRest()
+    for i = nActive + 1, #pool do pool[i]:Hide(); pool[i].rec = nil end
+end
+
+function MM:Invalidate() cacheMap = nil end
+
+function MM:Update()
+    nActive = 0
+    local cfg = VG:Config()
+    if not cfg.showMinimap then hideRest(); return end
+
+    local mapID = C_Map.GetBestMapForUnit("player")
+    if not mapID then hideRest(); return end
+    local ppos = C_Map.GetPlayerMapPosition(mapID, "player")
+    -- NOT `mapID and C_Map.GetMapWorldSize(mapID)`: `a and f()` keeps only f's FIRST
+    -- return, so h was always nil and minimap pins never drew (found 2026-10-18).
+    local w, h = C_Map.GetMapWorldSize(mapID)
+    if not (ppos and w and h and w > 0 and h > 0) then hideRest(); return end
+    if cacheMap ~= mapID then
+        cacheMap, cacheOwn, cacheShared = mapID, VG:NodesFor(mapID), VG:SharedFor(mapID)
+    end
+
+    local px, py = ppos:GetXY()
+    local radius = (C_Minimap and C_Minimap.GetViewRadius and C_Minimap.GetViewRadius()) or 133
+    if radius <= 0 then radius = 133 end
+    local half = Minimap:GetWidth() / 2
+    local scale = half / radius
+    local rotate = GetCVar("rotateMinimap") == "1"
+    local facing = rotate and (GetPlayerFacing() or 0) or 0
+    local sinF, cosF = math.sin(facing), math.cos(facing)
+    local baseSize = math.max(10, (cfg.pinSize or 16) - 3)
+    -- visibility per kind once per frame, not VG:Visible() per record
+    local vis = {}
+    for k in pairs(VG.KINDS) do vis[k] = VG:Visible(k) end
+
+    local function place(list, shared)
+        local size = shared and baseSize - 2 or baseSize
+        for _, r in ipairs(list) do
+            if vis[r.k] then
+                local sx = (r.x - px) * w * scale
+                local sy = -((r.y - py) * h) * scale
+                if rotate then sx, sy = sx * cosF + sy * sinF, -sx * sinF + sy * cosF end
+                local dist2 = sx * sx + sy * sy
+                if dist2 <= (half - 4) * (half - 4) then
+                    local p = acquire()
+                    local def = VG.KINDS[r.k]
+                    p.rec, p.shared = r, shared
+                    p:SetSize(size, size)
+                    p.ring:SetSize(size + 3, size + 3)
+                    p.ring:SetVertexColor(def.color[1], def.color[2], def.color[3])
+                    p.icon:SetTexture(def.icon)
+                    local edge = dist2 > (half * 0.75) ^ 2 and 0.55 or 1
+                    p:SetAlpha(edge * VG:PinAlpha(r, shared))
+                    p:ClearAllPoints()
+                    p:SetPoint("CENTER", Minimap, "CENTER", sx, sy)
+                end
+            end
+        end
+    end
+    place(cacheShared, true)
+    place(cacheOwn, false)
+    hideRest()
+end
+
+function MM:Init()
+    local f = CreateFrame("Frame", nil, Minimap)   -- parented: stops when the minimap is hidden
+    f:SetScript("OnUpdate", function() MM:Update() end)
+end

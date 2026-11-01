@@ -2,7 +2,7 @@
 ## Title: |cff00c7ffVoidGather|r
 ## Notes: Remembers every mining, herb and skinning node you gather and shows them on your world map and minimap. Session loot tally, optional auto-switching of Find Minerals / Find Herbs.
 ## Author: Vede
-## Version: 0.2.0
+## Version: 0.2.1
 ## SavedVariables: VoidGatherDB
 ## IconTexture: Interface\Icons\Trade_Mining
 

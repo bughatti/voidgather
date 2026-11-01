@@ -29,6 +29,7 @@ VoidGather builds your gathering routes as you play. Every vein, herb, skinnable
 - **Zone catch-up** — entering a zone asks other players for the spots they know there
 - **Easy to tell apart** — shared spots are smaller and faded, brighten once a second player confirms them, and become yours once you gather there
 - **Hover a shared pin** to see who found it and when
+- **Who's here** — entering a zone tells you how many other VoidGather players are in it (`/vg here` asks any time)
 - **Turn sharing off** any time with `/vg share` or the map menu
 
 ### Gathering helpers
@@ -53,6 +54,7 @@ VoidGather builds your gathering routes as you play. Every vein, herb, skinnable
 | `/vg minimap` | Minimap pins on or off |
 | `/vg track` | Auto-switch Find Minerals / Find Herbs on or off |
 | `/vg share` | Share spots with other players on or off |
+| `/vg here` | How many other VoidGather players are in your zone |
 | `/vg net` | Check that sharing works on your realm, and see how many other VoidGather players are online there |
 
 ---

@@ -311,6 +311,8 @@ SlashCmdList.VOIDGATHER = function(msg)
         cfg.share = not cfg.share
         VG.Sync:Apply()
         print(VG.PREFIX .. " sharing with other players " .. (cfg.share and "|cff33ff33on|r" or "|cffff5555off|r"))
+    elseif msg == "here" then
+        VG.Sync:WhoHere()
     elseif msg == "net" then
         VG.Sync:SelfTest()
     elseif msg == "debug" then
@@ -321,7 +323,7 @@ SlashCmdList.VOIDGATHER = function(msg)
         print("  /vg stats — this session's loot · /vg zone — spots known here · /vg track — auto-switch Find Minerals/Herbs")
         print("  /vg best — waypoint to the best known spot for your Herbalism / Mining skill-ups")
         print("  /vg mining | herb | skin | lumber — show/hide · /vg minimap — minimap pins")
-        print("  /vg share — share spots with other players on/off · /vg net — test the sharing channel")
+        print("  /vg share — share spots with other players on/off · /vg here — other VoidGather players in this zone · /vg net — test the sharing channel")
     end
 end
 

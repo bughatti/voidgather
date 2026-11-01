@@ -9,6 +9,7 @@
 --   N:1:mapID:entries   a spot you just gathered for the first time (live)
 --   Q:1:mapID           "anyone have spots for this map?" (on zone change)
 --   B:1:mapID:entries   answer to Q — your own spots for that map, in batches
+--   P:1:zoneID / H:1:zoneID   who's here: "I arrived" / "I'm here too"
 --   PING:nonce          /vg net self-test (you receive your own messages)
 -- entries = "k,x,y,name;k,x,y,name" with k = m/h/s/l, x/y = 0..9999.
 --
@@ -96,9 +97,10 @@ local function pump()
     end
 end
 
-local function send(msg)
+-- urgent = jump the queue (who's-here answers are only useful within seconds)
+local function send(msg, urgent)
     if #queue >= QUEUE_MAX then return end
-    queue[#queue + 1] = msg
+    if urgent then table.insert(queue, 1, msg) else queue[#queue + 1] = msg end
     if not sending then
         pump()
         -- always start the ticker: pump() just emptied the queue, so a
@@ -146,6 +148,122 @@ local function answer(mapID)
     -- newest first, so a capped answer carries the freshest spots
     for i = #own, math.max(1, #own - REPLY_MAX + 1), -1 do out[#out + 1] = own[i] end
     sendSpots("B", mapID, out)
+end
+
+----------------------------------------------------------------------
+-- Who's here: entering a zone tells you how many other VoidGather players
+-- are in it.
+--   P:1:zoneID   "I just arrived" (sent when you enter a zone)
+--   H:1:zoneID   "I'm here too" (answer from players already in that zone)
+-- Answerers wait 0.5-4 s at random and stand down once HERE_CAP others have
+-- answered, so a busy zone sends about HERE_CAP answers and shows "10+".
+-- Subzones and caves count as their zone; instances are skipped. Only
+-- players on a VoidGather with this feature answer.
+----------------------------------------------------------------------
+local HERE_CAP   = 10
+local HERE_WAIT  = 6      -- seconds the arrival listens before printing
+local ARRIVE_CD  = 120    -- announce the same zone at most this often
+local ASK_CD     = 15     -- /vg here at most this often
+
+local hereZone            -- zone you're in now (nil in instances)
+local announced           -- zone you last announced
+local lastArrive = {}     -- [zoneID] = GetTime()
+local listen              -- { zone, from = {[name]=true}, n, always }
+local rounds = {}         -- [zoneID] = { n = answers heard, timer = our pending answer }
+
+-- Roll a map up to its zone (city floors, caves and subzones count as the zone).
+local function zoneOf(mapID)
+    local ZONE = Enum and Enum.UIMapType and Enum.UIMapType.Zone or 3
+    local info = mapID and C_Map.GetMapInfo(mapID)
+    local hops = 0
+    while info and info.mapType and info.mapType > ZONE and (info.parentMapID or 0) > 0 and hops < 5 do
+        info = C_Map.GetMapInfo(info.parentMapID)
+        hops = hops + 1
+    end
+    if info and info.mapType == ZONE then return info.mapID, info.name end
+end
+
+local function currentZone()
+    if IsInInstance() then return nil end
+    return zoneOf(C_Map.GetBestMapForUnit("player"))
+end
+
+local function report(zone)
+    local l = listen
+    if not (l and l.zone == zone) then return end
+    listen = nil
+    local now, name = currentZone()
+    if now ~= zone then return end
+    if l.n == 0 then
+        if l.always then
+            print(("%s no other VoidGather players answered in %s."):format(VG.PREFIX, name or "this zone"))
+        end
+        return
+    end
+    local count = l.n >= HERE_CAP and (HERE_CAP .. "+") or tostring(l.n)
+    print(("%s |cff33ff33%s|r other VoidGather player%s in %s."):format(VG.PREFIX,
+        count, l.n == 1 and " is" or "s are", name or "this zone"))
+end
+
+-- always = asked by hand: skip the cooldowns and say so even when nobody answers
+local function arrive(always)
+    local zone = currentZone()
+    hereZone = zone
+    if not zone then announced = nil end   -- back from an instance = arriving again
+    if not zone or not enabled() or not netIndex() then return end
+    local cd = always and ASK_CD or ARRIVE_CD
+    if not always and zone == announced then return end
+    if lastArrive[zone] and GetTime() - lastArrive[zone] < cd then
+        if always then print(VG.PREFIX .. " asked a moment ago, try again in a few seconds.") end
+        return
+    end
+    announced = zone
+    lastArrive[zone] = GetTime()
+    listen = { zone = zone, from = {}, n = 0, always = always }
+    send(("P:%s:%d"):format(PROTO, zone), true)
+    C_Timer.After(HERE_WAIT, function() report(zone) end)
+end
+
+function Sync:WhoHere()
+    if not enabled() then
+        print(VG.PREFIX .. " sharing is |cffff5555off|r — /vg share to turn it on.")
+    elseif not currentZone() then
+        print(VG.PREFIX .. " not counted inside instances.")
+    else
+        arrive(true)
+    end
+end
+
+local function onHere(tag, zone, sender)
+    -- an arrival counts everyone who says they're in its zone
+    if listen and listen.zone == zone and not listen.from[sender] then
+        listen.from[sender] = true
+        listen.n = listen.n + 1
+    end
+    if zone ~= hereZone then return end
+
+    -- a round lasts until our answer goes out; a P after that starts a new one
+    local r = rounds[zone]
+    if tag == "P" then
+        if r and r.timer then
+            r.n = 0   -- answers heard so far came before this arrival; ours still covers both
+        else
+            r = { n = 0 }
+            rounds[zone] = r
+            r.timer = C_Timer.NewTimer(0.5 + math.random() * 3.5, function()
+                r.timer = nil
+                if hereZone == zone and r.n < HERE_CAP and enabled() then
+                    send(("H:%s:%d"):format(PROTO, zone), true)
+                end
+            end)
+        end
+    elseif r and r.timer then
+        r.n = r.n + 1
+        if r.n >= HERE_CAP and r.timer then
+            r.timer:Cancel()
+            r.timer = nil
+        end
+    end
 end
 
 ----------------------------------------------------------------------
@@ -220,6 +338,8 @@ function Sync:OnMessage(msg, sender)
         takeSpots(mapID, body, sender)
     elseif tag == "N" then
         takeSpots(mapID, body, sender)
+    elseif (tag == "P" or tag == "H") and body == "" then
+        onHere(tag, mapID, sender)
     end
 end
 
@@ -246,7 +366,7 @@ end
 function Sync:Apply()
     if enabled() then
         self:JoinNet()
-        C_Timer.After(3, askHere)
+        C_Timer.After(3, function() askHere(); arrive() end)
     elseif netIndex() then
         LeaveChannelByName(CHANNEL_NAME)
     end
@@ -272,12 +392,13 @@ function Sync:Init()
             Sync:OnMessage(msg, who)
         else
             askHere()
+            arrive()
         end
     end)
     -- the chat/channel system needs a few seconds after login
     C_Timer.After(8, function()
         Sync:JoinNet()
-        C_Timer.After(3, askHere)
+        C_Timer.After(3, function() askHere(); arrive() end)
     end)
 end
 

@@ -1,5 +1,9 @@
 # VoidGather Changelog
 
+## 0.2.1
+
+- **Who's here.** When you enter a zone, VoidGather tells you how many other VoidGather players are in it. It stays quiet when nobody else is there; `/vg here` asks anytime. Caves and city floors count as their zone, instances aren't counted, players with sharing turned off aren't counted, and players on an older VoidGather don't answer yet.
+
 ## 0.2.0
 
 - **Skill-up colors.** Herb and ore pins get an outline in the profession window's colors: orange always gives a skill point, yellow usually, green rarely, grey never (grey pins fade). It reads your Midnight Herbalism and Mining skill and each node's skill thresholds from the game's own data, and turns off once you're maxed.

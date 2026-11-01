@@ -48,6 +48,17 @@ local function generator(_, root)
     root:CreateCheckbox("Minimap pins",
         function() return cfg.showMinimap end,
         function() cfg.showMinimap = not cfg.showMinimap; VG:Refresh(); return refresh() end)
+    -- Minimap pin size / opacity: the pins redraw every frame, so a pick shows at once.
+    local size = root:CreateButton("Minimap pin size")
+    for _, o in ipairs({ { "Small", 9 }, { "Medium", 11 }, { "Large", 13 } }) do
+        size:CreateRadio(o[1], function() return (cfg.mmPinSize or 11) == o[2] end,
+            function() cfg.mmPinSize = o[2]; return refresh() end)
+    end
+    local alpha = root:CreateButton("Minimap pin opacity")
+    for _, o in ipairs({ { "Faint (50%)", 0.5 }, { "See-through (70%)", 0.7 }, { "Solid (100%)", 1 } }) do
+        alpha:CreateRadio(o[1], function() return (cfg.mmAlpha or 0.7) == o[2] end,
+            function() cfg.mmAlpha = o[2]; return refresh() end)
+    end
     root:CreateCheckbox("Auto-switch Find Minerals / Find Herbs",
         function() return cfg.autoTrack end,
         function() cfg.autoTrack = not cfg.autoTrack; VG.Tracking:Apply(); return refresh() end)

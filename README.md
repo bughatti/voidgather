@@ -15,7 +15,7 @@ VoidGather builds your gathering routes as you play. Every vein, herb, skinnable
 - **Stays out of your way** — small colored diamonds (blue mining, green herbs, white skinning, teal lumber) drawn underneath quest markers, flight points and entrances
 - **Only your professions** — spots for professions you don't have stay hidden (lumber always shows); switch it off in the map menu
 - **Click a pin for a waypoint** — Blizzard's waypoint and arrow, cleared when you arrive
-- **Minimap pins** fade near the edge of the minimap so close spots stand out
+- **Minimap pins** are small and see-through so the map shows through, and fade near the edge so close spots stand out. Pick their size and opacity from the world map button
 
 ### Skill-ups: where to level Herbalism and Mining
 - **Pins show if they still give you skill**, in the profession window's colors: an **orange** outline always gives a point, **yellow** usually, **green** rarely, and **grey** never (grey pins fade). Black means no skill info, such as an older expansion's node
@@ -37,7 +37,7 @@ VoidGather builds your gathering routes as you play. Every vein, herb, skinnable
 - **Auto-switch Find Minerals / Find Herbs** (optional) — for miner-herbalists where only one tracker can run at a time; it only flips while you're moving and out of combat
 
 ### Map menu
-- **A button on the world map** with your skill-ups and where to go, show/hide filters for mining, herbs, skinning and lumber (with counts for the zone), "only nodes that give skill", "only my professions", world map dots, minimap pins, auto-switch and sharing
+- **A button on the world map** with your skill-ups and where to go, show/hide filters for mining, herbs, skinning and lumber (with counts for the zone), "only nodes that give skill", "only my professions", world map dots, minimap pins (with size and opacity), auto-switch and sharing
 
 ---
 

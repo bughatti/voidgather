@@ -78,13 +78,14 @@ function MM:Update()
     local rotate = GetCVar("rotateMinimap") == "1"
     local facing = rotate and (GetPlayerFacing() or 0) or 0
     local sinF, cosF = math.sin(facing), math.cos(facing)
-    local baseSize = math.max(10, (cfg.pinSize or 16) - 3)
+    local baseSize = cfg.mmPinSize or 11
+    local mmAlpha = cfg.mmAlpha or 0.7
     -- visibility per kind once per frame, not VG:Visible() per record
     local vis = {}
     for k in pairs(VG.KINDS) do vis[k] = VG:Visible(k) end
 
     local function place(list, shared)
-        local size = shared and baseSize - 2 or baseSize
+        local size = shared and math.max(7, baseSize - 2) or baseSize
         for _, r in ipairs(list) do
             if vis[r.k] and not VG.Skill:Hidden(r) then
                 local sx = (r.x - px) * w * scale
@@ -102,7 +103,7 @@ function MM:Update()
                     local c = VG.Skill:Color(r.k, r.n)
                     local col = c and VG.Skill.COLORS[c]
                     if col then
-                        p.frame:SetSize(size + 4, size + 4)
+                        p.frame:SetSize(size + 2, size + 2)   -- 1px skill-color edge
                         p.frame:SetColorTexture(col[1], col[2], col[3])
                         p.frame:Show()
                     else
@@ -110,7 +111,7 @@ function MM:Update()
                     end
                     p.icon:SetTexture(def.icon)
                     local edge = dist2 > (half * 0.75) ^ 2 and 0.55 or 1
-                    p:SetAlpha(edge * VG:PinAlpha(r, shared) * (c == "grey" and 0.35 or 1))
+                    p:SetAlpha(mmAlpha * edge * VG:PinAlpha(r, shared) * (c == "grey" and 0.35 or 1))
                     p:ClearAllPoints()
                     p:SetPoint("CENTER", Minimap, "CENTER", sx, sy)
                 end

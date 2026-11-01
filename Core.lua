@@ -55,6 +55,9 @@ VG.defaults = {
     autoTrack = false,      -- cycle Find Minerals / Find Herbs (see Tracking.lua)
     autoTrackSecs = 3,
     pinSize = 16,
+    -- Minimap pins (user 2026-11-01: the squares were big and hid the terrain).
+    mmPinSize = 11,         -- px; menu offers 9 / 11 / 13
+    mmAlpha = 0.7,          -- menu offers 0.5 / 0.7 / 1
     share = true,           -- send/receive spots over VoidGatherNet (see Sync.lua)
     showWorld = true,       -- dots on the world map (minimap pins are separate)
     onlyMine = true,        -- hide kinds you can't gather (lumber always shows)

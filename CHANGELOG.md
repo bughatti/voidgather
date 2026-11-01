@@ -1,5 +1,9 @@
 # VoidGather Changelog
 
+## 0.2.2
+
+- **Smaller, see-through minimap pins.** The squares on your minimap were big enough to hide the terrain. They are now smaller and 70% opaque, with a thinner skill-color edge. The world map button has two new settings, **Minimap pin size** (Small / Medium / Large) and **Minimap pin opacity** (50% / 70% / 100%), and a pick shows on the minimap at once.
+
 ## 0.2.1
 
 - **Who's here.** When you enter a zone, VoidGather tells you how many other VoidGather players are in it. It stays quiet when nobody else is there; `/vg here` asks anytime. Caves and city floors count as their zone, instances aren't counted, players with sharing turned off aren't counted, and players on an older VoidGather don't answer yet.

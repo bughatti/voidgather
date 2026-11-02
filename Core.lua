@@ -308,6 +308,9 @@ SlashCmdList.VOIDGATHER = function(msg)
         print(VG.PREFIX .. " session tally reset.")
     elseif msg == "options" or msg == "config" or msg == "settings" then
         VG.Settings:Toggle()
+    elseif msg == "box" then
+        VoidPresence:SetShown(not VoidPresence:IsShown())
+        print(VG.PREFIX .. " players-here box " .. (VoidPresence:IsShown() and "|cff33ff33on|r (drag it anywhere)" or "|cffff5555off|r"))
     elseif msg == "earn" then
         VG.Earn:SetShown(not cfg.showEarn)
     elseif msg == "earn zones" then
@@ -339,6 +342,7 @@ SlashCmdList.VOIDGATHER = function(msg)
     else
         print(VG.PREFIX .. " — gathered spots show on your map automatically. /vg options (or the world map button) for settings.")
         print("  /vg stats — this session's loot · /vg zone — spots known here · /vg track — auto-switch Find Minerals/Herbs")
+        print("  /vg box — players-here box on/off")
         print("  /vg earn — earnings box on/off · /vg earn zones — best gold per hour by zone · /vg earn history — recent sessions")
         print("  /vg best — waypoint to the best known spot for your Herbalism / Mining skill-ups")
         print("  /vg mining | herb | skin | lumber — show/hide · /vg minimap — minimap pins")

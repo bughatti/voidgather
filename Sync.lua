@@ -168,8 +168,26 @@ local ASK_CD     = 15     -- /vg here at most this often
 local hereZone            -- zone you're in now (nil in instances)
 local announced           -- zone you last announced
 local lastArrive = {}     -- [zoneID] = GetTime()
-local listen              -- { zone, from = {[name]=true}, n, always }
+local listen              -- { zone, from = {[name]=true}, n, always, recount }
 local rounds = {}         -- [zoneID] = { n = answers heard, timer = our pending answer }
+
+-- Who's in your zone now, for the "players here" box (PresenceBox.lua): filled
+-- by arrivals (P), answers (H) and departures (L:1:zoneID, sent when you leave
+-- a zone; older versions ignore it), and rebuilt by a quiet recount every 10
+-- minutes while the box is shown (catches players who logged off).
+local RECOUNT = 600
+local rosters = {}        -- [zoneID] = { [name] = true }
+local rosterZone          -- the zone we last counted
+local capped = {}         -- [zoneID] = true: the last count hit HERE_CAP (busy zone)
+local LEAVE_DELAY = 10    -- seconds out of a zone before "left" goes out (border flapping)
+local leaveTimer = {}     -- [zoneID] = pending "left" timer
+
+local function publish()
+    if not _G.VoidPresence then return end
+    local n = 0
+    for _ in pairs(hereZone and rosters[hereZone] or {}) do n = n + 1 end
+    VoidPresence:Set("VoidGather", "VoidGather", n, capped[hereZone or 0] or n >= HERE_CAP, enabled() and hereZone ~= nil)
+end
 
 -- Roll a map up to its zone (city floors, caves and subzones count as the zone).
 local function zoneOf(mapID)
@@ -194,6 +212,12 @@ local function report(zone)
     listen = nil
     local now, name = currentZone()
     if now ~= zone then return end
+    if l.recount then rosters[zone] = l.from end
+    -- a busy zone stays "10+" through departures, until a count says otherwise
+    capped[zone] = l.n >= HERE_CAP
+    publish()
+    -- the box shows the count: chat only when asked by hand or the box is off
+    if l.recount or (not l.always and _G.VoidPresence and VoidPresence:IsShown()) then return end
     if l.n == 0 then
         if l.always then
             print(("%s no other VoidGather players answered in %s."):format(VG.PREFIX, name or "this zone"))
@@ -208,7 +232,27 @@ end
 -- always = asked by hand: skip the cooldowns and say so even when nobody answers
 local function arrive(always)
     local zone = currentZone()
+    if zone ~= rosterZone then
+        -- left a zone: tell the players there, so their count drops
+        -- left a zone: after a few seconds away tell the players there, so their count
+        -- drops (coming back before then cancels it; flying along a border sends nothing)
+        local left = rosterZone
+        if left and enabled() and netIndex() and not leaveTimer[left] then
+            leaveTimer[left] = C_Timer.NewTimer(LEAVE_DELAY, function()
+                leaveTimer[left] = nil
+                if hereZone ~= left and enabled() and netIndex() then
+                    send(("L:%s:%d"):format(PROTO, left), true)
+                    lastArrive[left] = nil   -- they dropped us: coming back announces again
+                    if announced == left then announced = nil end
+                end
+            end)
+        end
+        if zone and leaveTimer[zone] then leaveTimer[zone]:Cancel(); leaveTimer[zone] = nil end
+        rosterZone = zone
+        if zone then rosters[zone] = rosters[zone] or {} end
+    end
     hereZone = zone
+    publish()
     if not zone then announced = nil end   -- back from an instance = arriving again
     if not zone or not enabled() or not netIndex() then return end
     local cd = always and ASK_CD or ARRIVE_CD
@@ -234,13 +278,40 @@ function Sync:WhoHere()
     end
 end
 
+-- Quiet recount for the box: same as arriving, no chat, and the answers
+-- replace the roster.
+local function recount()
+    local zone = currentZone()
+    if not (_G.VoidPresence and VoidPresence:IsShown()) then return end
+    if not zone or zone ~= hereZone or listen or not enabled() or not netIndex() then return end
+    lastArrive[zone] = GetTime()
+    listen = { zone = zone, from = {}, n = 0, recount = true }
+    send(("P:%s:%d"):format(PROTO, zone), true)
+    C_Timer.After(HERE_WAIT, function() report(zone) end)
+end
+
 local function onHere(tag, zone, sender)
+    if tag == "L" then   -- someone left this zone
+        if rosters[zone] then rosters[zone][sender] = nil end
+        -- and out of a count in progress, or the recount would add them back
+        if listen and listen.zone == zone and listen.from[sender] then
+            listen.from[sender] = nil
+            listen.n = listen.n - 1
+        end
+        if zone == hereZone then publish() end
+        return
+    end
     -- an arrival counts everyone who says they're in its zone
     if listen and listen.zone == zone and not listen.from[sender] then
         listen.from[sender] = true
         listen.n = listen.n + 1
     end
     if zone ~= hereZone then return end
+    rosters[zone] = rosters[zone] or {}
+    if not rosters[zone][sender] then
+        rosters[zone][sender] = true
+        publish()
+    end
 
     -- a round lasts until our answer goes out; a P after that starts a new one
     local r = rounds[zone]
@@ -338,7 +409,7 @@ function Sync:OnMessage(msg, sender)
         takeSpots(mapID, body, sender)
     elseif tag == "N" then
         takeSpots(mapID, body, sender)
-    elseif (tag == "P" or tag == "H") and body == "" then
+    elseif (tag == "P" or tag == "H" or tag == "L") and body == "" then
         onHere(tag, mapID, sender)
     end
 end
@@ -370,6 +441,13 @@ function Sync:Apply()
     elseif netIndex() then
         LeaveChannelByName(CHANNEL_NAME)
     end
+    publish()
+end
+
+-- The box was just turned on: count now instead of waiting for the next recount.
+function Sync:CountNow()
+    publish()
+    recount()
 end
 
 function Sync:Init()
@@ -400,6 +478,8 @@ function Sync:Init()
         Sync:JoinNet()
         C_Timer.After(3, function() askHere(); arrive() end)
     end)
+    C_Timer.NewTicker(RECOUNT, recount)
+    VoidPresence:Listen(function() Sync:CountNow() end)
 end
 
 ----------------------------------------------------------------------

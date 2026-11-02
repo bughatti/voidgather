@@ -1,5 +1,9 @@
 # VoidGather Changelog
 
+## 0.3.1
+
+- **Players-here box.** A small box you can drag anywhere showing how many other VoidGather (and VoidSweep) players are in your zone, kept up to date as people come and go. Tick it in the settings window or use `/vg box`.
+
 ## 0.3.0
 
 - **What your gathering is worth.** Herbs, ore, skins, lumber and fish are priced as they land in your bags (VoidAH, Auctionator or TSM if you have one, else the vendor price). Tick **Earnings box on screen** in the settings window, or `/vg earn`, for a small box you can drag anywhere: session total and gold per hour, with the split by profession and your best items on hover. Only time spent gathering counts toward the hourly rate.

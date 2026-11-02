@@ -1,5 +1,10 @@
 # VoidGather Changelog
 
+## 0.3.2
+
+- **Gathering HUD.** Your minimap, big and see-through in front of you and turning with you: the game's own herb and ore dots (Find Herbs / Find Minerals) float around you, with VoidGather's spots (and VoidSweep's, if you have it) on top. Its buttons wait in a dark circle where the minimap normally sits, and turning it off puts everything back, zoom and rotation included. Set a key in Keybindings > AddOns > VoidGather, use `/vg hud`, or tick it in the settings window (size, how much of the map shows underneath, Move HUD to place it). It switches outside combat.
+- **Void hub pop-up** opens next to the hub icon again when another addon moves or fades the minimap (a gathering HUD did both).
+
 ## 0.3.1
 
 - **Players-here box.** A small box you can drag anywhere showing how many other VoidGather (and VoidSweep) players are in your zone, kept up to date as people come and go. Tick it in the settings window or use `/vg box`.

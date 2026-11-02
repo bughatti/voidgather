@@ -46,12 +46,19 @@ VoidGather builds your gathering routes as you play. Every vein, herb, skinnable
 - **Every Midnight recipe** comes from the game's own data; values use your auction prices (VoidAH, Auctionator or TSM) and are left out when a price is missing, so you never see a guess. Crafting bonuses aren't counted, so real crafts can come out a bit better
 - Turn the tooltip lines off in the settings window
 
+### Gathering HUD
+- **Your minimap, big and see-through in front of you** and turning with you, so the game's own herb and ore dots (Find Herbs / Find Minerals) float around you while you fly, with VoidGather's spots on top
+- **Click-through** while you play; **Move HUD** in the settings window to place it, three sizes, and how much of the map shows underneath
+- **Nothing gets lost** — the minimap's buttons wait where it normally sits, and turning the HUD off puts everything back, zoom and rotation included
+- **VoidSweep's rares and treasures** show on it too, if you have VoidSweep
+- Key binding (Keybindings > AddOns > VoidGather), `/vg hud`, or the settings window. It switches outside combat
+
 ### Gathering helpers
 - **Session loot tally** — what you've gathered this session, with an hourly rate
 - **Auto-switch Find Minerals / Find Herbs** (optional) — for miner-herbalists where only one tracker can run at a time; it only flips while you're moving and out of combat
 
 ### Settings window
-- **Open it from the Void hub icon by your minimap, the button on the world map, or `/vg options`.** Drag the title bar to move it; the x or Esc closes it. It has your skill-ups and where to go, show/hide filters for mining, herbs, skinning and lumber (with counts for the zone), "only nodes that give skill", "only my professions", world map dots, minimap pins (with size and opacity), auto-switch, sharing and the earnings box
+- **Open it from the Void hub icon by your minimap, the button on the world map, or `/vg options`.** Drag the title bar to move it; the x or Esc closes it. It has your skill-ups and where to go, show/hide filters for mining, herbs, skinning and lumber (with counts for the zone), "only nodes that give skill", "only my professions", world map dots, minimap pins (with size and opacity), auto-switch, sharing, the earnings and players-here boxes, item tooltips and the gathering HUD
 
 ---
 
@@ -74,6 +81,7 @@ VoidGather builds your gathering routes as you play. Every vein, herb, skinnable
 | `/vg share` | Share spots with other players on or off |
 | `/vg here` | How many other VoidGather players are in your zone |
 | `/vg box` | Players-here box on or off |
+| `/vg hud` | Gathering HUD on or off · `/vg hud move` to place it |
 | `/vg net` | Check that sharing works on your realm, and see how many other VoidGather players are online there |
 
 ---
@@ -97,7 +105,8 @@ VoidGather builds your gathering routes as you play. Every vein, herb, skinnable
 
 ## Good to Know
 
-- The yellow dots from Find Minerals and Find Herbs are drawn by the game, and addons can't read them. VoidGather learns a spot when someone gathers it.
+- The yellow dots from Find Minerals and Find Herbs are drawn by the game, and addons can't read them. VoidGather learns a spot when someone gathers it. The gathering HUD shows those dots anyway, because it uses your real minimap.
+- In some zones the minimap can show a dark square right after you turn the HUD off. It redraws round as soon as you move.
 - Sharing reaches players on your realm group who are online and running VoidGather.
 - Your spots are saved per account and kept between sessions.
 

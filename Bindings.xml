@@ -1,0 +1,5 @@
+<Bindings>
+	<Binding name="VOIDGATHER_HUD" header="VOIDGATHER">
+		VoidGather_ToggleHUD()
+	</Binding>
+</Bindings>

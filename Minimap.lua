@@ -21,6 +21,10 @@ local function acquire()
     if not p then
         p = CreateFrame("Frame", nil, Minimap)
         p:SetFrameLevel(Minimap:GetFrameLevel() + 5)
+        -- a gathering HUD (ours or another addon's) fades the minimap and moves
+        -- what hangs off it: pins stay on it and keep their own opacity
+        p.voidKeep = true
+        p:SetIgnoreParentAlpha(true)
         p.ring = p:CreateTexture(nil, "BACKGROUND")
         p.ring:SetAtlas("WhiteCircle-RaidBlips")
         p.ring:SetPoint("CENTER")
@@ -45,6 +49,9 @@ local function acquire()
         pool[nActive] = p
     end
     p:Show()
+    -- on the gathering HUD the pins let clicks through (it sits over the world)
+    local mouse = not VG.HUD:IsActive()
+    if p.mouseOn ~= mouse then p:EnableMouse(mouse); p.mouseOn = mouse end
     return p
 end
 
@@ -78,7 +85,7 @@ function MM:Update()
     local rotate = GetCVar("rotateMinimap") == "1"
     local facing = rotate and (GetPlayerFacing() or 0) or 0
     local sinF, cosF = math.sin(facing), math.cos(facing)
-    local baseSize = cfg.mmPinSize or 11
+    local baseSize = VG.HUD:IsActive() and (cfg.hudPinSize or 16) or cfg.mmPinSize or 11
     local mmAlpha = cfg.mmAlpha or 0.7
     -- visibility per kind once per frame, not VG:Visible() per record
     local vis = {}
@@ -125,5 +132,6 @@ end
 
 function MM:Init()
     local f = CreateFrame("Frame", nil, Minimap)   -- parented: stops when the minimap is hidden
+    f.voidKeep = true
     f:SetScript("OnUpdate", function() MM:Update() end)
 end

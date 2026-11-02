@@ -89,10 +89,11 @@ end
 ----------------------------------------------------------------------
 local function BuildPopup()
     if popupFrame then return popupFrame end
-    popupFrame = CreateFrame("Frame", "VoidHubPopup", Minimap)
+    -- Its own frame on UIParent, not the minimap's: a gathering HUD (VoidGather,
+    -- FarmHud) moves the minimap and fades it out, which took the popup with it.
+    popupFrame = CreateFrame("Frame", "VoidHubPopup", UIParent)
     popupFrame:SetSize(40, 40)
-    popupFrame:SetFrameStrata("MEDIUM")
-    popupFrame:SetFrameLevel((Minimap:GetFrameLevel() or 1) + 12)
+    popupFrame:SetFrameStrata("HIGH")
     popupFrame:Hide()
     popupFrame:SetScript("OnShow", function(self)
         self:EnableMouse(true)
@@ -188,12 +189,16 @@ local function TogglePopup()
     if popupFrame:IsShown() then popupFrame:Hide(); return end
     RefreshPopup()
     popupFrame:ClearAllPoints()
+    -- next to whatever the hub button sits on: the minimap, or the spot a
+    -- gathering HUD parks the minimap's buttons on while the minimap is in it
+    local anchor = (hubBtn and hubBtn:GetParent()) or Minimap
     local screenW = GetScreenWidth() or 1920
-    local mapCenterX = Minimap:GetCenter() or (screenW / 2)
-    if mapCenterX > screenW / 2 then
-        popupFrame:SetPoint("TOPRIGHT", Minimap, "TOPLEFT", -8, 0)
+    local centerX = anchor:GetCenter() or (screenW / 2)
+    centerX = centerX * anchor:GetEffectiveScale() / UIParent:GetEffectiveScale()
+    if centerX > screenW / 2 then
+        popupFrame:SetPoint("TOPRIGHT", anchor, "TOPLEFT", -8, 0)
     else
-        popupFrame:SetPoint("TOPLEFT", Minimap, "TOPRIGHT", 8, 0)
+        popupFrame:SetPoint("TOPLEFT", anchor, "TOPRIGHT", 8, 0)
     end
     popupFrame:Show()
 end

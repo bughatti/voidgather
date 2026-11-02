@@ -1,8 +1,8 @@
 ## Interface: 120105, 16001
 ## Title: |cff00c7ffVoidGather|r
-## Notes: Remembers every mining, herb, skinning and lumber spot you gather and shows them on your map. Gold per hour for your gathering, and what each material is worth crafted.
+## Notes: Remembers every mining, herb, skinning and lumber spot you gather and shows them on your map. Gold per hour, what each material is worth crafted, and a see-through gathering HUD.
 ## Author: Vede
-## Version: 0.3.1
+## Version: 0.3.2
 ## SavedVariables: VoidGatherDB, VoidPresenceDB
 ## SavedVariablesPerCharacter: VoidHubCharDB
 ## IconTexture: Interface\Icons\Trade_Mining
@@ -21,6 +21,7 @@ Waypoint.lua
 Pins.lua
 Pins.xml
 Minimap.lua
+HUD.lua
 Tracking.lua
 Settings.lua
 MapButton.lua

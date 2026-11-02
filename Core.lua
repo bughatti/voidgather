@@ -15,6 +15,7 @@
 --   Earnings.lua  prices gathered and fished loot: session worth, gold/hour, best zones
 --   CraftData.lua what each raw material can be crafted into (generated, Blizzard game tables)
 --   Craft.lua     what a material is worth crafted, in item tooltips and the earnings box
+--   HUD.lua       the gathering HUD: known spots around you, big and see-through
 --   Sync.lua      shares spots with other players (hidden VoidGatherNet channel)
 --   Waypoint.lua  click a pin -> Blizzard waypoint + arrow
 --   Pins.lua/xml  world-map pins (MapCanvas data provider)
@@ -68,6 +69,10 @@ VG.defaults = {
     skillOnly = false,      -- hide nodes that no longer give you skill (see Skill.lua)
     showEarn = false,       -- movable earnings box on screen (Earnings.lua)
     craftTips = true,       -- item tooltips: what a material is worth crafted (Craft.lua)
+    hud = false,            -- gathering HUD: the real minimap, big and see-through (HUD.lua)
+    hudSize = 0.7,          -- share of the screen height; settings offer 0.5 / 0.7 / 0.9
+    hudTerrain = 0,         -- how much of the map shows under the dots; settings offer 0 / 0.15 / 0.35
+    hudPinSize = 16,        -- VoidGather pins on the HUD (px)
 }
 
 function VG:Config()
@@ -259,6 +264,7 @@ end
 function VG:Refresh()
     if VG.Pins then VG.Pins:Refresh() end
     if VG.Minimap then VG.Minimap:Invalidate() end
+    if VG.HUD then VG.HUD:Invalidate() end
 end
 
 ----------------------------------------------------------------------
@@ -308,6 +314,12 @@ SlashCmdList.VOIDGATHER = function(msg)
         print(VG.PREFIX .. " session tally reset.")
     elseif msg == "options" or msg == "config" or msg == "settings" then
         VG.Settings:Toggle()
+    elseif msg == "hud" then
+        VG.HUD:Toggle()
+    elseif msg == "hud move" then
+        VG.HUD:ToggleMove()
+    elseif msg == "hud debug" then
+        VG.HUD:Debug()
     elseif msg == "box" then
         VoidPresence:SetShown(not VoidPresence:IsShown())
         print(VG.PREFIX .. " players-here box " .. (VoidPresence:IsShown() and "|cff33ff33on|r (drag it anywhere)" or "|cffff5555off|r"))
@@ -342,7 +354,7 @@ SlashCmdList.VOIDGATHER = function(msg)
     else
         print(VG.PREFIX .. " — gathered spots show on your map automatically. /vg options (or the world map button) for settings.")
         print("  /vg stats — this session's loot · /vg zone — spots known here · /vg track — auto-switch Find Minerals/Herbs")
-        print("  /vg box — players-here box on/off")
+        print("  /vg hud — gathering HUD on/off · /vg hud move — drag it, then again to lock · /vg box — players-here box on/off")
         print("  /vg earn — earnings box on/off · /vg earn zones — best gold per hour by zone · /vg earn history — recent sessions")
         print("  /vg best — waypoint to the best known spot for your Herbalism / Mining skill-ups")
         print("  /vg mining | herb | skin | lumber — show/hide · /vg minimap — minimap pins")
@@ -362,6 +374,7 @@ boot:SetScript("OnEvent", function(_, event)
         VG.Gather:Init()
         VG.Earn:Init()
         VG.Craft:Init()
+        VG.HUD:Init()
         VG.Sync:Init()
         VG.Pins:Init()
         VG.Minimap:Init()

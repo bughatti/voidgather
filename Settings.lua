@@ -269,6 +269,21 @@ local function build()
             function() cfg.craftTips = not cfg.craftTips end,
             "Hover a herb, ore, leather or cooking ingredient: its sell price, and what each piece is worth turned into a potion, mulch, ingot and so on. Uses your auction prices."),
     }
+    -- Gathering HUD (HUD.lua)
+    w.hudHead = header(f, "Gathering HUD")
+    w.hudChecks = {
+        checkbox(f, "Show the HUD",
+            function() return cfg.hud end,
+            function() VG.HUD:SetShown(not cfg.hud) end,
+            "Your minimap, big and see-through in front of you and turning with you: the game's own herb and ore dots (Find Herbs / Find Minerals) plus VoidGather's spots. Its buttons wait where the minimap was. Also on a key binding (Options > Keybindings > AddOns > VoidGather) and /vg hud. Switches outside combat."),
+    }
+    w.hudSize = choice(f, "Size", { { "Small", 0.5 }, { "Medium", 0.7 }, { "Large", 0.9 } },
+        function() return cfg.hudSize or 0.7 end, function(v) cfg.hudSize = v; VG.HUD:Refresh() end)
+    w.hudTerrain = choice(f, "Map underneath", { { "Off", 0 }, { "Faint", 0.15 }, { "Light", 0.35 } },
+        function() return cfg.hudTerrain or 0 end, function(v) cfg.hudTerrain = v; VG.HUD:Refresh() end)
+    w.hudMove = button(f, "Move HUD", 150, function() VG.HUD:ToggleMove(); S:Refresh() end)
+    tooltip(w.hudMove, "Move the HUD", "Unlocks it so you can drag it; click again to lock. Locked, it lets your clicks through.")
+
     w.loot = button(f, "Session loot (chat)", 150, function() VG.Gather:PrintSession() end)
     w.zones = button(f, "Best zones (chat)", 150, function() VG.Earn:PrintZones() end)
     tooltip(w.zones, "Best gold per hour by zone", "From all your sessions, zones with 10+ minutes of gathering.")
@@ -326,7 +341,17 @@ function S:Refresh()
 
     place(w.helpHead, 18)
     for _, cb in ipairs(w.helpChecks) do cb:Update(); place(cb, 20, 4) end
-    y = y - 10
+    y = y - 8
+
+    place(w.hudHead, 18)
+    for _, cb in ipairs(w.hudChecks) do cb:Update(); place(cb, 20, 4) end
+    w.hudSize:Update(); place(w.hudSize, 24, 4)
+    w.hudTerrain:Update(); place(w.hudTerrain, 24, 4)
+    w.hudMove.text:SetText(VG.HUD:IsMoving() and "Lock HUD" or "Move HUD")
+    w.hudMove:ClearAllPoints()
+    w.hudMove:SetPoint("TOPLEFT", PAD + 4, y)
+    w.hudMove:Show()
+    y = y - 22 - 10
 
     w.loot:ClearAllPoints()
     w.loot:SetPoint("TOPLEFT", PAD, y)

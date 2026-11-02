@@ -1,5 +1,10 @@
 # VoidGather Changelog
 
+## 0.3.3
+
+- **Compass on the HUD.** N, E, S and W sit on the HUD's rim and turn as you turn, with north in cyan and your heading (N, NE, E...) just above the ring, so you always know which way you're flying.
+- **Void hub icons in rings.** Clicking the Void hub icon fans your Void addons out in rings around it (5, then 7, 9, 12), opening away from the minimap instead of one long column.
+
 ## 0.3.2
 
 - **Gathering HUD.** Your minimap, big and see-through in front of you and turning with you: the game's own herb and ore dots (Find Herbs / Find Minerals) float around you, with VoidGather's spots (and VoidSweep's, if you have it) on top. Its buttons wait in a dark circle where the minimap normally sits, and turning it off puts everything back, zoom and rotation included. Set a key in Keybindings > AddOns > VoidGather, use `/vg hud`, or tick it in the settings window (size, how much of the map shows underneath, Move HUD to place it). It switches outside combat.

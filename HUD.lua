@@ -264,7 +264,39 @@ local function build()
     hud.edge:SetAllPoints()
     hud.edge:SetTexture(DISC)
     hud.hint = hud:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    hud.hint:SetPoint("BOTTOM", hud, "TOP", 0, 4)
+    hud.hint:SetPoint("BOTTOM", hud, "TOP", 0, 22)
+
+    -- Compass: N / E / S / W on the rim, turning with you (up on the HUD is the way
+    -- you face), and your heading just above the ring.
+    hud.compass = {}
+    for _, d in ipairs({ { "N", 0 }, { "E", 1 }, { "S", 2 }, { "W", 3 } }) do
+        local fs = hud:CreateFontString(nil, "OVERLAY", d[1] == "N" and "GameFontNormalLarge" or "GameFontNormal")
+        fs:SetText(d[1])
+        if d[1] == "N" then fs:SetTextColor(A[1], A[2], A[3], 1) else fs:SetTextColor(1, 1, 1, 0.65) end
+        fs.quarter = d[2]
+        hud.compass[#hud.compass + 1] = fs
+    end
+    hud.heading = hud:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    hud.heading:SetPoint("BOTTOM", hud, "TOP", 0, 2)
+    hud.heading:SetTextColor(A[1], A[2], A[3])
+    local HEADINGS = { "N", "NE", "E", "SE", "S", "SW", "W", "NW" }
+    hud:SetScript("OnUpdate", function(self)
+        local facing = GetPlayerFacing()   -- nil where the game hides it (instances)
+        for _, fs in ipairs(self.compass) do fs:SetShown(facing ~= nil) end
+        self.heading:SetShown(facing ~= nil)
+        if not facing then return end
+        -- north sits at (sin f, cos f) from the center; east, south and west follow
+        -- a quarter turn apart, clockwise on screen
+        local r = self:GetWidth() / 2 - 14
+        for _, fs in ipairs(self.compass) do
+            local a = facing + fs.quarter * math.pi / 2
+            fs:ClearAllPoints()
+            fs:SetPoint("CENTER", self, "CENTER", math.sin(a) * r, math.cos(a) * r)
+        end
+        -- facing turns counterclockwise from north; a bearing turns clockwise
+        local bearing = (360 - math.deg(facing)) % 360
+        self.heading:SetText(HEADINGS[math.floor((bearing + 22.5) / 45) % 8 + 1])
+    end)
     hud.hint:SetText("Drag to move the HUD  ·  Move HUD (or /vg hud move) again to lock")
     hud:Hide()
 

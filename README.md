@@ -50,6 +50,7 @@ VoidGather builds your gathering routes as you play. Every vein, herb, skinnable
 - **Your minimap, big and see-through in front of you** and turning with you, so the game's own herb and ore dots (Find Herbs / Find Minerals) float around you while you fly, with VoidGather's spots on top
 - **Click-through** while you play; **Move HUD** in the settings window to place it, three sizes, and how much of the map shows underneath
 - **Nothing gets lost** — the minimap's buttons wait where it normally sits, and turning the HUD off puts everything back, zoom and rotation included
+- **A compass** on its rim (N, E, S, W turning with you) and your heading above it
 - **VoidSweep's rares and treasures** show on it too, if you have VoidSweep
 - Key binding (Keybindings > AddOns > VoidGather), `/vg hud`, or the settings window. It switches outside combat
 

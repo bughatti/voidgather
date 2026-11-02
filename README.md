@@ -13,15 +13,15 @@ VoidGather builds your gathering routes as you play. Every vein, herb, skinnable
 - **Lumber too** — Midnight's housing lumber counts, no profession needed
 - **Settles on the exact spot** — gathering the same node again refines its position instead of adding a duplicate
 - **Stays out of your way** — small colored diamonds (blue mining, green herbs, white skinning, teal lumber) drawn underneath quest markers, flight points and entrances
-- **Only your professions** — spots for professions you don't have stay hidden (lumber always shows); switch it off in the map menu
+- **Only your professions** — spots for professions you don't have stay hidden (lumber always shows); switch it off in the settings window
 - **Click a pin for a waypoint** — Blizzard's waypoint and arrow, cleared when you arrive
 - **Minimap pins** are small and see-through so the map shows through, and fade near the edge so close spots stand out. Pick their size and opacity from the world map button
 
 ### Skill-ups: where to level Herbalism and Mining
 - **Pins show if they still give you skill**, in the profession window's colors: an **orange** outline always gives a point, **yellow** usually, **green** rarely, and **grey** never (grey pins fade). Black means no skill info, such as an older expansion's node
 - **Uses your real Midnight skill** and the game's own skill thresholds for each node
-- **Where to go**: the map menu shows your skill, what gives points right now, and a **Go:** button that sets a waypoint to the best known spot. `/vg best` does the same from chat
-- **"Only nodes that give skill"** in the map menu hides the grey ones
+- **Where to go**: the settings window shows your skill, what gives points right now, and a **Go:** button that sets a waypoint to the best known spot. `/vg best` does the same from chat
+- **"Only nodes that give skill"** in the settings window hides the grey ones
 - Turns itself off once you're maxed, so farming pins don't all go grey
 
 ### Shared with other players
@@ -30,14 +30,27 @@ VoidGather builds your gathering routes as you play. Every vein, herb, skinnable
 - **Easy to tell apart** — shared spots are smaller and faded, brighten once a second player confirms them, and become yours once you gather there
 - **Hover a shared pin** to see who found it and when
 - **Who's here** — entering a zone tells you how many other VoidGather players are in it (`/vg here` asks any time)
-- **Turn sharing off** any time with `/vg share` or the map menu
+- **Turn sharing off** any time with `/vg share` or the settings window
+
+### What your gathering is worth
+- **Gold per hour** — every herb, ore, skin, lumber and fish you loot is priced as it lands in your bags, and the session total and gold per hour add up as you go
+- **A small box you can put anywhere** — tick "Earnings box on screen" in the settings window (or `/vg earn`), then drag it where you like. Hover it for the split by profession and your most valuable items; right-click to start a new session
+- **Fair hourly rate** — only time spent gathering counts. A break of more than 5 minutes (flying back to town, a dungeon, AFK) is left out
+- **Best zones** — every zone keeps a running gold-per-hour record across your sessions, so `/vg earn zones` shows where gathering pays best for you. `/vg earn history` lists your recent sessions
+- **Prices** come from VoidAH's auction data, Auctionator or TSM if you have one, otherwise the vendor price. Soulbound loot has no price and isn't counted
+
+### Sell it or craft it?
+- **Hover a herb, ore, leather or cooking ingredient** and the tooltip shows its sell price and what each piece is worth turned into something else: a potion, flask, mulch, ingot, armor kit or food. The best three, with the profession that makes them, and "you can make it" when you know the recipe
+- **The earnings box shows it too** — hover it and items worth more crafted show that value in green, plus what your whole session would be worth crafted
+- **Every Midnight recipe** comes from the game's own data; values use your auction prices (VoidAH, Auctionator or TSM) and are left out when a price is missing, so you never see a guess. Crafting bonuses aren't counted, so real crafts can come out a bit better
+- Turn the tooltip lines off in the settings window
 
 ### Gathering helpers
 - **Session loot tally** — what you've gathered this session, with an hourly rate
 - **Auto-switch Find Minerals / Find Herbs** (optional) — for miner-herbalists where only one tracker can run at a time; it only flips while you're moving and out of combat
 
-### Map menu
-- **A button on the world map** with your skill-ups and where to go, show/hide filters for mining, herbs, skinning and lumber (with counts for the zone), "only nodes that give skill", "only my professions", world map dots, minimap pins (with size and opacity), auto-switch and sharing
+### Settings window
+- **Open it from the Void hub icon by your minimap, the button on the world map, or `/vg options`.** Drag the title bar to move it; the x or Esc closes it. It has your skill-ups and where to go, show/hide filters for mining, herbs, skinning and lumber (with counts for the zone), "only nodes that give skill", "only my professions", world map dots, minimap pins (with size and opacity), auto-switch, sharing and the earnings box
 
 ---
 
@@ -46,10 +59,14 @@ VoidGather builds your gathering routes as you play. Every vein, herb, skinnable
 | Command | What it does |
 |---|---|
 | `/vg` | Show all commands |
+| `/vg options` | Open the settings window |
 | `/vg best` | Waypoint to the best known spot for your Herbalism or Mining skill-ups |
 | `/vg zone` | How many spots are known in this zone (yours and shared) |
 | `/vg stats` | This session's gathered loot |
-| `/vg reset` | Reset the session tally |
+| `/vg reset` | Start a new session (loot tally and earnings) |
+| `/vg earn` | Earnings box on or off |
+| `/vg earn zones` | Best gold per hour by zone, from all your sessions |
+| `/vg earn history` | Your recent sessions |
 | `/vg mining` · `/vg herb` · `/vg skin` · `/vg lumber` | Show or hide that kind of pin |
 | `/vg minimap` | Minimap pins on or off |
 | `/vg track` | Auto-switch Find Minerals / Find Herbs on or off |
@@ -69,7 +86,7 @@ VoidGather builds your gathering routes as you play. Every vein, herb, skinnable
 
 ## Privacy & Data
 
-- **What's shared:** the kind of spot (mining, herb, skinning or lumber), the zone, its map position and the node's name. Nothing about your character, bags or gold.
+- **What's shared:** the kind of spot (mining, herb, skinning or lumber), the zone, its map position and the node's name. Nothing about your character, bags or gold. Your earnings stay on your computer.
 - Other players see the character name that shared a spot, the same as any addon message.
 - Shared spots only come from players' own gathers, never passed along second-hand, so one bad report can't spread.
 - With sharing off, VoidGather sends and receives nothing.

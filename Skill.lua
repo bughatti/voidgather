@@ -102,13 +102,18 @@ function S:Tooltip(rec)
     GameTooltip:AddLine(("Yellow at %d, grey at %d"):format(t[1], t[2]), 0.6, 0.6, 0.6)
 end
 
--- One line per profession for the map menu: your skill and which node types
--- are orange / yellow now. nil when there's nothing to say.
+-- One line per profession: your skill and which node types are orange /
+-- yellow now. nil when there's nothing to say. Second value: a short form
+-- (skill + how many types of each) for the settings window, which shows the
+-- full line on hover.
 function S:Summary(kind)
     local def = VG.SKILLUP and VG.SKILLUP[kind]
     local lv = def and self:Level(kind)
     if not lv then return nil end
-    if lv[1] >= lv[2] then return ("%s %d/%d: maxed"):format(def.label, lv[1], lv[2]) end
+    if lv[1] >= lv[2] then
+        local maxed = ("%s %d/%d: maxed"):format(def.label, lv[1], lv[2])
+        return maxed, maxed
+    end
     local orange, yellow, green = {}, {}, 0
     for name in pairs(def.nodes) do
         local c = self:Color(kind, name)
@@ -130,7 +135,14 @@ function S:Summary(kind)
         parts[#parts + 1] = green > 0 and ("|cff40c040only green nodes left (%d types): skill-ups are rare|r"):format(green)
             or "no node gives you skill"
     end
-    return table.concat(parts, " - ")
+    local counts = {}
+    if #orange > 0 then counts[#counts + 1] = ("|cffff8040%d orange|r"):format(#orange) end
+    if #yellow > 0 then counts[#counts + 1] = ("|cffffff00%d yellow|r"):format(#yellow) end
+    if #counts == 0 then
+        counts[1] = green > 0 and ("|cff40c040%d green|r"):format(green) or "none give skill"
+    end
+    return table.concat(parts, " - "),
+        ("%s %d/%d  |cff8c8c9e·|r  %s"):format(def.label, lv[1], lv[2], table.concat(counts, ", "))
 end
 
 -- Where to go: every known spot (yours + shared, every zone) that still gives

@@ -37,7 +37,10 @@ function G:Init()
     f:RegisterUnitEvent("UNIT_SPELLCAST_SUCCEEDED", "player")
     f:RegisterUnitEvent("UNIT_SPELLCAST_FAILED", "player")
     f:RegisterUnitEvent("UNIT_SPELLCAST_INTERRUPTED", "player")
+    f:RegisterEvent("LOOT_READY")       -- before fast-loot addons empty the window
     f:RegisterEvent("LOOT_OPENED")
+    f:RegisterEvent("LOOT_SLOT_CLEARED")
+    f:RegisterEvent("LOOT_CLOSED")
     f:SetScript("OnEvent", function(_, event, ...) G[event](G, ...) end)
 end
 
@@ -100,10 +103,28 @@ function G:UNIT_SPELLCAST_SUCCEEDED(unit, castGUID, spellID)
     end
 end
 
--- Tally loot from a gather; name an unnamed spot after its first item.
+-- Tally loot from a gather (or fishing: priced by Earnings.lua, no map spot);
+-- name an unnamed spot after its first item.
+local lastFish = 0
+local lootKind, lootSlots   -- the open gather / fishing window: slot -> item, priced when taken
+local lootReadAt            -- when this window was read (LOOT_READY, then LOOT_OPENED)
 function G:LOOT_OPENED()
-    if not lastGather or (GetTime() - lastGather.t) > 6 then return end
+    -- LOOT_READY already read this window (expires on its own, in case a close is ever missed)
+    if lootReadAt and GetTime() - lootReadAt < 1 then return end
+    lootReadAt = GetTime()
+    lootSlots = nil
+    local kind
+    if lastGather and (GetTime() - lastGather.t) <= 6 then
+        kind = lastGather.kind
+    elseif IsFishingLoot and IsFishingLoot() then
+        if GetTime() - lastFish < 1 then return end   -- the same window reported twice
+        lastFish, kind = GetTime(), "fish"
+    else
+        lastGather = nil
+        return
+    end
     local first
+    lootKind, lootSlots = kind, {}
     for slot = 1, (GetNumLootItems() or 0) do
         local link = GetLootSlotLink(slot)
         local _, name, qty = GetLootSlotInfo(slot)
@@ -113,13 +134,37 @@ function G:LOOT_OPENED()
             it.n = it.n + qty
             session.items[name] = it
             first = first or name
+            local id = tonumber(link:match("item:(%d+)"))
+            if id then lootSlots[slot] = { id = id, qty = qty, link = link } end
         end
     end
-    if first and lastGather.rec and lastGather.rec.n == "?" then
+    if first and lastGather and lastGather.rec and lastGather.rec.n == "?" then
         lastGather.rec.n = first
         VG:Refresh()
     end
     lastGather = nil
+end
+
+-- Priced only once it's in your bags: a window closed early, or loot that
+-- didn't fit, isn't counted.
+G.LOOT_READY = G.LOOT_OPENED
+
+function G:LOOT_SLOT_CLEARED(slot)
+    local it = lootSlots and lootSlots[slot]
+    if not it then return end
+    lootSlots[slot] = nil
+    VG.Earn:Loot(lootKind, { it })
+end
+
+-- A fast-loot addon can close the window from inside a LOOT_SLOT_CLEARED
+-- handler that runs before ours, so the last item's event arrives after
+-- LOOT_CLOSED: keep the snapshot until the next frame.
+function G:LOOT_CLOSED()
+    lootReadAt = nil
+    local snap = lootSlots
+    C_Timer.After(0, function()
+        if lootSlots == snap then lootSlots = nil end
+    end)
 end
 
 function G:PrintSession()
@@ -129,6 +174,8 @@ function G:PrintSession()
         parts[#parts + 1] = ("%d %s"):format(session.nodes[k] or 0, VG.KINDS[k].label:lower())
     end
     print(("%s this session (%d min): %s gathers"):format(VG.PREFIX, mins, table.concat(parts, ", ")))
+    local worth = VG.Earn:SessionLine()
+    if worth then print("  " .. worth) end
     local names = {}
     for name in pairs(session.items) do names[#names + 1] = name end
     table.sort(names, function(a, b) return session.items[a].n > session.items[b].n end)

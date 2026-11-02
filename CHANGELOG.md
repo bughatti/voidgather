@@ -1,5 +1,13 @@
 # VoidGather Changelog
 
+## 0.3.0
+
+- **What your gathering is worth.** Herbs, ore, skins, lumber and fish are priced as they land in your bags (VoidAH, Auctionator or TSM if you have one, else the vendor price). Tick **Earnings box on screen** in the settings window, or `/vg earn`, for a small box you can drag anywhere: session total and gold per hour, with the split by profession and your best items on hover. Only time spent gathering counts toward the hourly rate.
+- **Sell it or craft it?** Hover a herb, ore, leather or cooking ingredient to see its sell price and what each piece is worth crafted (potion, flask, mulch, ingot, armor kit, food), best three first, with "you can make it" when you know the recipe. The earnings box shows the crafted value of your loot in green and what the session would be worth crafted. Built from every Midnight recipe in the game's data and your own auction prices.
+- **Best zones.** Each zone keeps a gold-per-hour record across sessions: `/vg earn zones`. `/vg earn history` lists recent sessions. A session ends 15 minutes after your last loot or with `/vg reset`, and carries over a /reload.
+- **A real settings window.** The Void hub icon, the world map button and `/vg options` open a proper VoidGather window in the Void addons' style (drag the title bar, x or Esc to close) instead of a dropdown menu. The hub icon is new: VoidGather now shows up in it, and right-clicking it turns the earnings box on or off.
+- **Waypoints across continents.** A pin in another zone or continent now sends you to the right portal first, then on to the spot after you arrive.
+
 ## 0.2.2
 
 - **Smaller, see-through minimap pins.** The squares on your minimap were big enough to hide the terrain. They are now smaller and 70% opaque, with a thinner skill-color edge. The world map button has two new settings, **Minimap pin size** (Small / Medium / Large) and **Minimap pin opacity** (50% / 70% / 100%), and a pick shows on the minimap at once.

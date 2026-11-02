@@ -12,12 +12,16 @@
 --   GatherData.lua  each node's skill thresholds (generated, Blizzard game tables)
 --   Skill.lua     which nodes still give you skill (pin colors, filter)
 --   Gather.lua    detects gathers (UNIT_SPELLCAST_SENT/SUCCEEDED + loot)
+--   Earnings.lua  prices gathered and fished loot: session worth, gold/hour, best zones
+--   CraftData.lua what each raw material can be crafted into (generated, Blizzard game tables)
+--   Craft.lua     what a material is worth crafted, in item tooltips and the earnings box
 --   Sync.lua      shares spots with other players (hidden VoidGatherNet channel)
 --   Waypoint.lua  click a pin -> Blizzard waypoint + arrow
 --   Pins.lua/xml  world-map pins (MapCanvas data provider)
 --   Minimap.lua   minimap pins
 --   Tracking.lua  optional auto-switch Find Minerals <-> Find Herbs
---   MapButton.lua filter / options menu on the world map
+--   MapButton.lua world map button + Void hub icon (open Settings)
+--   Settings.lua  settings window
 ----------------------------------------------------------------------
 local ADDON, VG = ...
 _G.VoidGather = VG
@@ -62,6 +66,8 @@ VG.defaults = {
     showWorld = true,       -- dots on the world map (minimap pins are separate)
     onlyMine = true,        -- hide kinds you can't gather (lumber always shows)
     skillOnly = false,      -- hide nodes that no longer give you skill (see Skill.lua)
+    showEarn = false,       -- movable earnings box on screen (Earnings.lua)
+    craftTips = true,       -- item tooltips: what a material is worth crafted (Craft.lua)
 }
 
 function VG:Config()
@@ -298,7 +304,16 @@ SlashCmdList.VOIDGATHER = function(msg)
         VG.Gather:PrintSession()
     elseif msg == "reset" then
         VG.Gather:ResetSession()
+        VG.Earn:Reset()
         print(VG.PREFIX .. " session tally reset.")
+    elseif msg == "options" or msg == "config" or msg == "settings" then
+        VG.Settings:Toggle()
+    elseif msg == "earn" then
+        VG.Earn:SetShown(not cfg.showEarn)
+    elseif msg == "earn zones" then
+        VG.Earn:PrintZones()
+    elseif msg == "earn history" then
+        VG.Earn:PrintHistory()
     elseif msg == "zone" then
         local mapID = C_Map.GetBestMapForUnit("player")
         local c, s = VG:CountNodes(mapID)
@@ -322,8 +337,9 @@ SlashCmdList.VOIDGATHER = function(msg)
         VG.Gather.debug = not VG.Gather.debug
         print(VG.PREFIX .. " debug " .. (VG.Gather.debug and "on — your casts are printed to chat" or "off"))
     else
-        print(VG.PREFIX .. " — gathered spots show on your map automatically. Map button (top right of the world map) for filters.")
+        print(VG.PREFIX .. " — gathered spots show on your map automatically. /vg options (or the world map button) for settings.")
         print("  /vg stats — this session's loot · /vg zone — spots known here · /vg track — auto-switch Find Minerals/Herbs")
+        print("  /vg earn — earnings box on/off · /vg earn zones — best gold per hour by zone · /vg earn history — recent sessions")
         print("  /vg best — waypoint to the best known spot for your Herbalism / Mining skill-ups")
         print("  /vg mining | herb | skin | lumber — show/hide · /vg minimap — minimap pins")
         print("  /vg share — share spots with other players on/off · /vg here — other VoidGather players in this zone · /vg net — test the sharing channel")
@@ -340,6 +356,8 @@ boot:SetScript("OnEvent", function(_, event)
     if event == "PLAYER_LOGIN" then
         VG:Config()
         VG.Gather:Init()
+        VG.Earn:Init()
+        VG.Craft:Init()
         VG.Sync:Init()
         VG.Pins:Init()
         VG.Minimap:Init()

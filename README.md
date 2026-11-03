@@ -112,6 +112,7 @@ VoidGather builds your gathering routes as you play. Every vein, herb, skinnable
 
 ## Good to Know
 
+- **Settings are per character.** Each character keeps its own VoidGather settings, and a new character starts with the settings of the one you played last, so nothing resets when you update. Right-click the Void hub icon by your minimap and pick **Copy settings from...** to take another character's settings for one Void addon or all of them. Window positions, your spots, earnings, recipes and crafting goals stay shared by all your characters.
 - The yellow dots from Find Minerals and Find Herbs are drawn by the game, and addons can't read them. VoidGather learns a spot when someone gathers it. The gathering HUD shows those dots anyway, because it uses your real minimap.
 - In some zones the minimap can show a dark square right after you turn the HUD off. It redraws round as soon as you move.
 - Sharing reaches players on your realm group who are online and running VoidGather.

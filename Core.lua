@@ -28,6 +28,11 @@
 local ADDON, VG = ...
 _G.VoidGather = VG
 
+-- Settings are per character (CharSettings.lua); window positions stay shared.
+-- Spots, earnings, recipes and goals stay account-wide.
+VG.CharSettings.Register(ADDON, "VoidGatherDB", { "config" },
+    { "config.earnPos", "config.hudPos", "config.settingsPos" })
+
 VG.PREFIX = "|cff00c7ffVoidGather|r"
 
 -- spells = base profession spell IDs; their LOCALIZED names are matched at

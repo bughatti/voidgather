@@ -15,6 +15,7 @@
 --   Earnings.lua  prices gathered and fished loot: session worth, gold/hour, best zones
 --   CraftData.lua what each raw material can be crafted into (generated, Blizzard game tables)
 --   Craft.lua     what a material is worth crafted, in item tooltips and the earnings box
+--   Goals.lua     your characters' recipes + crafting goals (missing materials in the earnings box)
 --   HUD.lua       the gathering HUD: known spots around you, big and see-through
 --   Sync.lua      shares spots with other players (hidden VoidGatherNet channel)
 --   Waypoint.lua  click a pin -> Blizzard waypoint + arrow
@@ -374,6 +375,7 @@ boot:SetScript("OnEvent", function(_, event)
         VG.Gather:Init()
         VG.Earn:Init()
         VG.Craft:Init()
+        VG.Goals:Init()
         VG.HUD:Init()
         VG.Sync:Init()
         VG.Pins:Init()

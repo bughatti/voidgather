@@ -14,6 +14,7 @@ local A = { 0, 0.78, 1 }   -- Void cyan
 local FONT = "Fonts\\FRIZQT__.TTF"
 local W = 380
 local PAD = 14
+local GOAL_ROWS = 5   -- the window doesn't scroll; the rest are in the earnings box tooltip
 local panel
 
 local function text(parent, size, flags)
@@ -114,6 +115,43 @@ local function choice(parent, label, options, get, set)
         local v = get()
         for _, b in ipairs(self.buttons) do b:SetSelected(b.value == v) end
     end
+    return row
+end
+
+-- "Vede · Harandar Celebration   [-] 5 [+] [x]"
+local function goalRow(parent)
+    local G = VG.Goals
+    local row = CreateFrame("Frame", nil, parent)
+    row:SetHeight(20)
+    row:EnableMouse(true)
+    local function bump(d) G:Set(row.key, row.name, (G:Get(row.key, row.name) or 0) + d) end
+    row.del = button(row, "|cffff5555x|r", 20, function() G:Set(row.key, row.name, 0) end)
+    row.del:SetPoint("RIGHT")
+    row.plus = button(row, "+", 20, function() bump(1) end)
+    row.plus:SetPoint("RIGHT", row.del, "LEFT", -8, 0)
+    row.n = text(row, 11)
+    row.n:SetWidth(26)
+    row.n:SetJustifyH("CENTER")
+    row.n:SetPoint("RIGHT", row.plus, "LEFT", -2, 0)
+    row.minus = button(row, "-", 20, function() bump(-1) end)
+    row.minus:SetPoint("RIGHT", row.n, "LEFT", -2, 0)
+    row.fs = text(row, 11)
+    row.fs:SetPoint("LEFT")
+    row.fs:SetPoint("RIGHT", row.minus, "LEFT", -6, 0)
+    row.fs:SetWordWrap(false)
+    row:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        GameTooltip:SetText(("%s x%d"):format(self.name, self.goal.n), 1, 1, 1)
+        GameTooltip:AddLine("Crafted on " .. G:Who(self.key), 0.8, 0.8, 0.8)
+        for _, m in ipairs(G:Mats(self.goal)) do
+            local id = m.ids[1]
+            local name = (C_Item and C_Item.GetItemNameByID and C_Item.GetItemNameByID(id)) or ("item " .. id)
+            GameTooltip:AddDoubleLine(name,
+                ("%d/%d"):format(m.have, m.need), 0.8, 0.8, 0.8, 1, 1, 1)
+        end
+        GameTooltip:Show()
+    end)
+    row:SetScript("OnLeave", function() GameTooltip:Hide() end)
     return row
 end
 
@@ -269,6 +307,17 @@ local function build()
             function() cfg.craftTips = not cfg.craftTips end,
             "Hover a herb, ore, leather or cooking ingredient: its sell price, and what each piece is worth turned into a potion, mulch, ingot and so on. Uses your auction prices."),
     }
+    -- Crafting goals (Goals.lua): rows are made as goals appear
+    w.goalHead = header(f, "Crafting goals")
+    w.goalRows = {}
+    w.goalHint = text(f, 10)
+    w.goalHint:SetTextColor(0.55, 0.55, 0.62)
+    w.goalHint:SetWidth(W - 2 * PAD - 4)
+    w.goalHint:SetWordWrap(true)
+    w.goalAdd = button(f, "Add a goal", 150, function(self) VG.Goals:AddMenu(self) end)
+    tooltip(w.goalAdd, "Add a crafting goal", "Pick a recipe one of your characters knows and how many to craft. "
+        .. "The gathered materials still missing show in the earnings box on every character.")
+
     -- Gathering HUD (HUD.lua)
     w.hudHead = header(f, "Gathering HUD")
     w.hudChecks = {
@@ -294,6 +343,7 @@ end
 function S:Refresh()
     if not (panel and panel:IsShown()) then return end
     local f, w = panel, panel.w
+    local cfg = VG:Config()
     local y = -28 - 12
     local function place(region, height, indent)
         region:ClearAllPoints()
@@ -342,6 +392,40 @@ function S:Refresh()
     place(w.helpHead, 18)
     for _, cb in ipairs(w.helpChecks) do cb:Update(); place(cb, 20, 4) end
     y = y - 8
+
+    place(w.goalHead, 18)
+    local goals = VG.Goals:List()
+    local more = #goals - GOAL_ROWS
+    while #goals > GOAL_ROWS do table.remove(goals) end
+    for i, g in ipairs(goals) do
+        local row = w.goalRows[i] or goalRow(f)
+        w.goalRows[i] = row
+        row.key, row.name, row.goal = g.key, g.name, g
+        row.fs:SetText(("%s  |cff8c8c9e·|r  %s"):format(VG.Goals:Who(g.key), g.name))
+        row.n:SetText(g.n)
+        place(row, 22, 4)
+    end
+    for i = #goals + 1, #w.goalRows do w.goalRows[i]:Hide() end
+    local hint
+    if more > 0 then
+        hint = ("…and %d more: hover the earnings box for all of them."):format(more)
+    elseif not next(VoidGatherDB.crafters or {}) then
+        hint = "Open a profession window once on each of your characters; VoidGather then knows what they craft."
+    elseif #goals == 0 then
+        hint = "Pick something one of your characters crafts. Its gathered materials still missing show in the earnings box."
+    end
+    if hint and not cfg.showEarn then hint = hint .. " Turn the earnings box on above." end
+    if not hint and not cfg.showEarn then hint = "The missing materials show in the earnings box: turn it on above." end
+    if hint then
+        w.goalHint:SetText(hint)
+        place(w.goalHint, w.goalHint:GetStringHeight() + 6, 4)
+    else
+        w.goalHint:Hide()
+    end
+    w.goalAdd:ClearAllPoints()
+    w.goalAdd:SetPoint("TOPLEFT", PAD + 4, y)
+    w.goalAdd:Show()
+    y = y - 22 - 8
 
     place(w.hudHead, 18)
     for _, cb in ipairs(w.hudChecks) do cb:Update(); place(cb, 20, 4) end

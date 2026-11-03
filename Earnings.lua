@@ -121,6 +121,7 @@ function E:Loot(kind, items)
     s.last, s.active = now, s.active + dt
     local total = 0
     for _, it in ipairs(items) do
+        VG.Goals:Gathered(it.id, kind)
         local p = self:Price(it.id)
         local v = (p or 0) * it.qty
         if not p then s.unpriced = s.unpriced + it.qty end
@@ -279,6 +280,7 @@ local function tooltip(f)
         GameTooltip:AddLine(("%d item%s with no price (soulbound, or not seen at auction yet)"):format(
             s.unpriced, s.unpriced == 1 and "" or "s"), 0.6, 0.6, 0.6, true)
     end
+    VG.Goals:AddBoxTooltip(GameTooltip)
     GameTooltip:AddLine(" ")
     GameTooltip:AddLine("Drag to move · right-click for options", 0.4, 0.8, 1)
     GameTooltip:Show()
@@ -321,9 +323,38 @@ local function buildBar()
     f.top = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     f.top:SetPoint("TOP", 0, -4)
     f.bottom = f:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    f.bottom:SetPoint("BOTTOM", 0, 5)
+    f.bottom:SetPoint("TOP", f.top, "BOTTOM", 0, -3)
+    f.goals = {}   -- crafting-goal lines under the totals (Goals.lua)
     f:Hide()
     return f
+end
+
+local GOAL_LINES = 10
+
+-- Crafting goals: the gathered materials still missing. Returns the widest line.
+local function goalLines(f)
+    local lines = VG.Goals:BoxLines()
+    local widest = 0
+    for i = 1, math.max(#f.goals, math.min(#lines, GOAL_LINES + 1)) do
+        local fs = f.goals[i]
+        local str = lines[i]
+        if i == GOAL_LINES + 1 and #lines > GOAL_LINES then str = ("|cff8c8c9e…and %d more|r"):format(#lines - GOAL_LINES) end
+        if i > GOAL_LINES + 1 then str = nil end
+        if str and not fs then
+            fs = f:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+            fs:SetPoint("TOPLEFT", 10, -34 - (i - 1) * 14)
+            fs:SetJustifyH("LEFT")
+            f.goals[i] = fs
+        end
+        if fs then
+            fs:SetText(str or "")
+            fs:SetShown(str ~= nil)
+            if str then widest = math.max(widest, fs:GetStringWidth()) end
+        end
+    end
+    local shown = math.min(#lines, GOAL_LINES + 1)
+    f:SetHeight(34 + (shown > 0 and shown * 14 + 4 or 0))
+    return widest
 end
 
 function E:Update()
@@ -337,7 +368,8 @@ function E:Update()
     local rate = E.Rate(s.value, s.active)
     bar.top:SetText(E.Money(s.value))
     bar.bottom:SetText((rate and (E.Money(rate) .. "/hr") or "—/hr") .. ("  ·  %d min"):format(minutes(s.active)))
-    bar:SetWidth(math.max(120, bar.bottom:GetStringWidth() + 24, bar.top:GetStringWidth() + 24))
+    local goals = goalLines(bar)
+    bar:SetWidth(math.max(120, bar.bottom:GetStringWidth() + 24, bar.top:GetStringWidth() + 24, goals + 20))
     bar:Show()
 end
 

@@ -129,7 +129,8 @@ local function addLines(tt, id)
     if not VG:Config().craftTips or not C:Known(id) then return end
     local options = C:Options(id)
     local raw, src = VG.Earn:Price(id)
-    if #options == 0 and not raw then return end
+    local users = VG.Goals:Users(id)   -- your characters that craft with it (Goals.lua)
+    if #options == 0 and not raw and #users == 0 then return end
     tt:AddLine(" ")
     tt:AddLine("VoidGather — what it's worth", 0, 0.78, 1)
     if raw then
@@ -160,6 +161,7 @@ local function addLines(tt, id)
         end
         tt:AddDoubleLine(("As %s  %s"):format(o.name, who), VG.Earn.Money(o.value), 0.8, 0.8, 0.8, 1, 1, 1)
     end
+    VG.Goals:AddTooltip(tt, users, id)
 end
 
 function C:Init()

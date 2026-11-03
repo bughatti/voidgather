@@ -1,5 +1,11 @@
 # VoidGather Changelog
 
+## 0.3.4
+
+- **Gathering for your other characters.** Open a profession window once on each character and VoidGather remembers its recipes. Hovering a herb or ore on any character then shows who of yours crafts what from it.
+- **Crafting goals.** Click **Set a gather goal** in a recipe's profession window (or **Add a goal** in the settings window) and pick how many to craft. The earnings box lists the materials still missing on every character, the ones you gather first ("Azeroot 9/15"), says when everything's in, and counts the goal down as you craft. Counts include your bank, the warband bank and what your other characters held the last time you played them (right away with VoidBags).
+- **Deposit for your crafters (with VoidBags).** At the bank, VoidBags' Warband tab lists the goal materials you're carrying that your crafter still needs, with one button to put them in the warband bank.
+
 ## 0.3.3
 
 - **Compass on the HUD.** N, E, S and W sit on the HUD's rim and turn as you turn, with north in cyan and your heading (N, NE, E...) just above the ring, so you always know which way you're flying.

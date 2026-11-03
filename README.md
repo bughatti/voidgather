@@ -46,6 +46,12 @@ VoidGather builds your gathering routes as you play. Every vein, herb, skinnable
 - **Every Midnight recipe** comes from the game's own data; values use your auction prices (VoidAH, Auctionator or TSM) and are left out when a price is missing, so you never see a guess. Crafting bonuses aren't counted, so real crafts can come out a bit better
 - Turn the tooltip lines off in the settings window
 
+### Gathering for your other characters
+- **It knows what your alts craft** — open a profession window once on each character and VoidGather saves the recipes it has learned. From then on, hovering a herb or ore on any of your characters names who crafts what from it ("Vede: Harandar Celebration, 3 each")
+- **Crafting goals** — in a recipe's profession window click **Set a gather goal** (or **Add a goal** in the settings window) and pick how many to craft. The earnings box then lists the materials still missing, on every character, the ones you gather first: "Azeroot 9/15"
+- **The list clears itself** — a material leaves the box once you have enough, the goal says "all in, craft on Vede" when everything's there, and it counts down as you craft
+- **Counts every character** — your bags, bank and warband bank, plus what your other characters held the last time you played them (with VoidBags installed, their bags count right away)
+
 ### Gathering HUD
 - **Your minimap, big and see-through in front of you** and turning with you, so the game's own herb and ore dots (Find Herbs / Find Minerals) float around you while you fly, with VoidGather's spots on top
 - **Click-through** while you play; **Move HUD** in the settings window to place it, three sizes, and how much of the map shows underneath

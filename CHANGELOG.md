@@ -1,5 +1,10 @@
 # VoidGather Changelog
 
+## 0.4.0
+
+- **Crafting goals in every profession.** The **Set a crafting goal** button (it was "Set a gather goal") now shows on every Midnight recipe, not just the ones made straight from herbs, ore, leather or cooking ingredients: Inscription's inks and Treatises, Enchanting's enchants, Jewelcrafting, Tailoring and Engineering recipes, crafted gear. Hovering an ink, dust or other crafted material shows which of your characters crafts with it.
+- **Your characters' materials in VoidAH.** VoidAH's profession leveling plan uses VoidGather's count of every character's bags and bank, so it can use what your alts hold before telling you to buy.
+
 ## 0.3.5
 
 - **Settings are per character.** Each character keeps its own VoidGather settings, and a new character starts with the settings of the one you played last, so nothing resets when you update. Right-click the Void hub icon by your minimap and pick **Copy settings from...** to take another character's settings for one Void addon or all of them. Window positions, your spots, earnings, recipes and crafting goals stay shared by all your characters.

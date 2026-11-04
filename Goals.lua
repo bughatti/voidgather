@@ -34,6 +34,7 @@ local function store()
     d.crafters = d.crafters or {}   -- ["Name-Realm"] = { class, t, recipes = { [spellID] = true } }
     d.goals = d.goals or {}         -- ["Name-Realm"] = { [recipe name] = crafts left }
     d.stock = d.stock or {}         -- ["Name-Realm"] = { [itemID] = bags + bank }, saved at logout
+    d.stockVer = d.stockVer or {}   -- ["Name-Realm"] = STOCK_VER of that count (Goals.heldBy)
     d.gathered = d.gathered or {}   -- [itemID] = kind, every item a gather gave you
     return d
 end
@@ -168,11 +169,18 @@ local function voidBags()
 end
 
 -- What another character holds of `ids`: its bags + bank as VoidGather last
--- counted them, else its bags as VoidBags saw them.
+-- counted them -- once that count covers every profession's materials
+-- (STOCK_VER, 2026-11-03) -- else its bags as VoidBags saw them, else the
+-- older count. One source per character: taking the larger of two per item
+-- added a stale count to a fresh one (Codex Sol, 2026-11-03).
+local STOCK_VER = 2
 local function heldBy(k, ids)
-    local s = store().stock[k] or voidBags()[k]
+    local d = store()
+    local s, vb = d.stock[k], voidBags()[k]
+    local src = s
+    if not (s and d.stockVer[k] == STOCK_VER) and vb then src = vb end
     local n = 0
-    for _, id in ipairs(ids) do n = n + (s and s[id] or 0) end
+    for _, id in ipairs(ids) do n = n + (src and src[id] or 0) end
     return n
 end
 
@@ -195,6 +203,19 @@ function G:Have(ids)
     local n = sum(ids, true)
     for k in pairs(others()) do n = n + heldBy(k, ids) end
     return n
+end
+
+-- Where you hold `ids`: { here = this character's bags + bank, warband =
+-- the warband bank, ["Name-Realm"] = another character's last count }.
+-- VoidAH's leveling plan uses it to take what you own off the shopping list.
+function G:Where(ids)
+    local here = sum(ids, false)
+    local out = { here = here, warband = sum(ids, true) - here }
+    for k in pairs(others()) do
+        local n = heldBy(k, ids)
+        if n > 0 then out[k] = n end
+    end
+    return out
 end
 
 -- How short each crafter still is of one material (needBy = { [key] = n }):
@@ -231,6 +252,7 @@ local function saveStock()
         if n > 0 then s[id] = n end
     end
     store().stock[key] = s
+    store().stockVer[key] = STOCK_VER
 end
 
 -- A dropped profession takes its saved recipes with it. `loaded` = the
@@ -550,8 +572,9 @@ function G:AddMenu(owner)
     end)
 end
 
--- Profession window: "Gather goal" button under Track Recipe, for recipes
--- that use gathered materials.
+-- Profession window: "Crafting goal" button under Track Recipe, for every
+-- recipe in CraftData (all professions: inks and enchants too, not just the
+-- ones made from gathered materials).
 local profBtn
 
 local function selected()
@@ -566,8 +589,8 @@ end
 local function profTooltip(self)
     local key, r = myKey(), self.recipe
     GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-    GameTooltip:SetText("VoidGather gather goal", 1, 1, 1)
-    GameTooltip:AddLine("How many you want to craft. The gathered materials still missing show in the "
+    GameTooltip:SetText("VoidGather crafting goal", 1, 1, 1)
+    GameTooltip:AddLine("How many you want to craft. The materials still missing show in the "
         .. "earnings box on all your characters, and the goal counts down as you craft.", 0.8, 0.8, 0.8, true)
     local n = r and G:Get(key, r[2])
     if n then
@@ -610,7 +633,7 @@ local function updateProf()
     profBtn:SetPoint("TOPRIGHT", form, "TOPRIGHT", -14, -44)
     profBtn.recipe = r
     local n = G:Get(myKey(), r[2])
-    profBtn.text:SetText(n and ("|cff00c7ffGather goal:|r %d"):format(n) or "|cff00c7ffSet a gather goal|r")
+    profBtn.text:SetText(n and ("|cff00c7ffCrafting goal:|r %d"):format(n) or "|cff00c7ffSet a crafting goal|r")
     profBtn:SetWidth(profBtn.text:GetStringWidth() + 18)
     profBtn:Show()
 end

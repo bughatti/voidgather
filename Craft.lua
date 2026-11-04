@@ -1,7 +1,7 @@
 ----------------------------------------------------------------------
 -- VoidGather — Craft: what a gathered material is worth crafted
 --
--- CraftData.lua (generated from the game's tables) lists every Midnight
+-- CraftData.lua (generated from the game's tables) marks every Midnight
 -- recipe that turns a raw material into something sellable. For a material
 -- this works out, per recipe, what each piece of it is worth when crafted:
 --
@@ -26,7 +26,9 @@ local function index()
     if uses then return end
     uses = {}
     for _, r in ipairs(VG.CRAFT or {}) do
-        for _, m in ipairs(r.mats) do
+        -- only recipes that turn a raw material into something sellable; the
+        -- rest (inks, enchants, gear) are in the list for crafting goals
+        for _, m in ipairs(r.price and r.mats or {}) do
             for _, id in ipairs(m.ids) do
                 uses[id] = uses[id] or {}
                 table.insert(uses[id], r)
@@ -126,10 +128,15 @@ end
 -- Item tooltips: "VoidGather: sell 12g each · as Imbued Mulch 18g (you can make it)"
 ----------------------------------------------------------------------
 local function addLines(tt, id)
-    if not VG:Config().craftTips or not C:Known(id) then return end
+    if not VG:Config().craftTips then return end
+    -- your characters that craft with it (Goals.lua): inks, dust and other
+    -- non-raw materials get only this part
+    local users = VG.Goals:Users(id)
+    local known = C:Known(id)
+    if not known and #users == 0 then return end
     local options = C:Options(id)
-    local raw, src = VG.Earn:Price(id)
-    local users = VG.Goals:Users(id)   -- your characters that craft with it (Goals.lua)
+    local raw, src
+    if known then raw, src = VG.Earn:Price(id) end
     if #options == 0 and not raw and #users == 0 then return end
     tt:AddLine(" ")
     tt:AddLine("VoidGather — what it's worth", 0, 0.78, 1)

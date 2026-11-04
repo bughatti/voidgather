@@ -316,7 +316,7 @@ local function build()
     w.goalHint:SetWordWrap(true)
     w.goalAdd = button(f, "Add a goal", 150, function(self) VG.Goals:AddMenu(self) end)
     tooltip(w.goalAdd, "Add a crafting goal", "Pick a recipe one of your characters knows and how many to craft. "
-        .. "The gathered materials still missing show in the earnings box on every character.")
+        .. "The materials still missing show in the earnings box on every character.")
 
     -- Gathering HUD (HUD.lua)
     w.hudHead = header(f, "Gathering HUD")
@@ -412,7 +412,7 @@ function S:Refresh()
     elseif not next(VoidGatherDB.crafters or {}) then
         hint = "Open a profession window once on each of your characters; VoidGather then knows what they craft."
     elseif #goals == 0 then
-        hint = "Pick something one of your characters crafts. Its gathered materials still missing show in the earnings box."
+        hint = "Pick something one of your characters crafts. Its materials still missing show in the earnings box."
     end
     if hint and not cfg.showEarn then hint = hint .. " Turn the earnings box on above." end
     if not hint and not cfg.showEarn then hint = "The missing materials show in the earnings box: turn it on above." end

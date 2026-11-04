@@ -48,7 +48,7 @@ VoidGather builds your gathering routes as you play. Every vein, herb, skinnable
 
 ### Gathering for your other characters
 - **It knows what your alts craft** — open a profession window once on each character and VoidGather saves the recipes it has learned. From then on, hovering a herb or ore on any of your characters names who crafts what from it ("Vede: Harandar Celebration, 3 each")
-- **Crafting goals** — in a recipe's profession window click **Set a gather goal** (or **Add a goal** in the settings window) and pick how many to craft. The earnings box then lists the materials still missing, on every character, the ones you gather first: "Azeroot 9/15"
+- **Crafting goals, every profession** — in any recipe's profession window click **Set a crafting goal** (or **Add a goal** in the settings window) and pick how many to craft: food, potions, inks, enchants, gear. The earnings box then lists the materials still missing, on every character, the ones you gather first: "Azeroot 9/15"
 - **The list clears itself** — a material leaves the box once you have enough, the goal says "all in, craft on Vede" when everything's there, and it counts down as you craft
 - **Counts every character** — your bags, bank and warband bank, plus what your other characters held the last time you played them (with VoidBags installed, their bags count right away)
 

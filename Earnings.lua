@@ -331,7 +331,7 @@ end
 
 local GOAL_LINES = 10
 
--- Crafting goals: the gathered materials still missing. Returns the widest line.
+-- Crafting goals: the materials still missing. Returns the widest line.
 local function goalLines(f)
     local lines = VG.Goals:BoxLines()
     local widest = 0

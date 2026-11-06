@@ -35,7 +35,12 @@ local function safeToSwitch()
     if UnitCastingInfo("player") or UnitChannelInfo("player") then return false end
     if LootFrame and LootFrame:IsShown() then return false end
     if UnitIsDeadOrGhost("player") then return false end
-    return IsMounted() or (GetUnitSpeed("player") or 0) > 0
+    if IsInInstance() then return false end   -- no herbs or ore there
+    if IsMounted() then return true end
+    -- Speed is a secret value in some places (Warsong Gulch, 2026-11-04): don't compare it.
+    local speed = GetUnitSpeed("player")
+    if not speed or (issecretvalue and issecretvalue(speed)) then return false end
+    return speed > 0
 end
 
 local function tick()

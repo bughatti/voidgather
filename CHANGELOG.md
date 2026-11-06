@@ -1,5 +1,17 @@
 # VoidGather Changelog
 
+## 0.4.2
+
+- **Spot sharing works again on WoW Forever.** Forever's live servers stopped carrying addon messages on the hidden sharing channel, so shared spots silently stopped arriving there. On Forever, VoidGather now sends them by hidden addon whisper to a few other VoidGather players online instead (they never show in chat). Retail is unchanged.
+- **On Forever the players box counts VoidGather players online** (Forever can't count them by zone any more). `/vg here` says the same.
+- **Auto-tracking no longer errors in battlegrounds** (your speed is hidden there), and stays off in instances, where there's nothing to gather.
+
+## 0.4.1
+
+- **Deposit for crafters covers everything your crafters use.** With VoidBags, the warband bank's "Materials for your crafters" list now has every material in your bags that one of your other characters' professions crafts with (dust and crystals for your enchanter, herbs your scribe mills, cooking ingredients for your cook), not only crafting goals. Goals still come first with their exact counts. What the character you're on crafts with stays in its bags, except disenchanting materials (dust, shards, Dawn Crystals), which always go to the warband bank for your enchanter. A character's professions count once it has logged in with VoidBags or opened its profession window.
+- **Take my materials** (with VoidBags): the reverse, what in the warband bank the character you're on crafts with, back into its bags. A character with Enchanting takes the disenchanting materials too.
+- **Only crafting materials move**, never potions, food or gear a recipe happens to take. A profession a character has never leveled (Cooking 1/100) doesn't count as one it crafts with.
+
 ## 0.4.0
 
 - **Crafting goals in every profession.** The **Set a crafting goal** button (it was "Set a gather goal") now shows on every Midnight recipe, not just the ones made straight from herbs, ore, leather or cooking ingredients: Inscription's inks and Treatises, Enchanting's enchants, Jewelcrafting, Tailoring and Engineering recipes, crafted gear. Hovering an ink, dust or other crafted material shows which of your characters crafts with it.

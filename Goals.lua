@@ -258,6 +258,31 @@ end
 -- A dropped profession takes its saved recipes with it. `loaded` = the
 -- profession list is known to be loaded (SKILL_LINES_CHANGED), so an empty
 -- one means no professions at all, not "not loaded yet".
+-- Each character's skill per profession (base skill line), saved at login: a
+-- profession it has never leveled (a rogue at Cooking 1/100) doesn't count as
+-- one it crafts with, for its own deposits or for others' (2026-11-04).
+local function saveSkills()
+    local key = myKey()
+    if not (key and GetProfessions and GetProfessionInfo) then return end
+    local d = store()
+    local c = d.crafters[key] or { recipes = {} }
+    d.crafters[key] = c
+    c.class = c.class or select(2, UnitClass("player"))
+    c.skills = {}
+    for _, idx in pairs({ GetProfessions() }) do
+        local _, _, rank, _, _, _, line = GetProfessionInfo(idx)
+        if line then c.skills[line] = rank or 0 end
+    end
+end
+G.SaveSkills = saveSkills
+
+-- Does character `k` really use profession `line`? Unknown skill: yes.
+local function leveled(k, line)
+    local c = k and store().crafters[k]
+    local s = c and c.skills and c.skills[line]
+    return s == nil or s > 1
+end
+
 local function prune(loaded)
     local key = myKey()
     local c = key and store().crafters[key]
@@ -419,13 +444,167 @@ function G:BoxLines()
     return lines
 end
 
--- For VoidBags' warband bank view: goal materials in this character's bags
--- that another character's goal still needs and can't reach yet (its bags,
--- bank and the warband bank). Only goals with a number count; nothing else.
+-- For VoidBags' warband bank view: what in this character's bags another of
+-- your characters crafts with. First the crafting goals' shortfalls (exact
+-- counts), then everything else a recipe they know takes, all of it: the user
+-- asked (2026-11-03) for "all items any crafting needs", not just goals.
+-- Only what the warband bank accepts (not soulbound).
 -- { { id, ids, count, key }, ... }, one material split over two crafters
 -- never promises the same items twice.
+-- Herbs that mill into a pigment (same table as VoidProf's Planner.lua): an
+-- inscriber with an ink recipe uses the herbs too, though no recipe lists them.
+local MILLED_FROM = {
+    [245807] = { 236761, 236767 }, [245808] = { 236761, 236767 },   -- Tranquility Bloom
+    [245803] = { 236776, 236777 }, [245804] = { 236776, 236777 },   -- Argentleaf
+    [245865] = { 236770, 236771 }, [245864] = { 236770, 236771 },   -- Sanguithorn
+    [245867] = { 236778, 236779 }, [245866] = { 236778, 236779 },   -- Mana Lily
+}
+local millHerb = {}
+for _, herbs in pairs(MILLED_FROM) do for _, id in ipairs(herbs) do millHerb[id] = true end end
+-- What disenchanting gives (Eversinging Dust, Radiant Shard, Dawn Crystal, both
+-- ranks): always deposited, so it pools for the enchanter you level, even from
+-- a character that enchants too (the user's pick, 2026-11-03).
+local DE_MATS = { [243599] = true, [243600] = true, [243602] = true, [243603] = true,
+                  [243605] = true, [243606] = true }
+
+-- Only crafting materials move: trade goods (herbs, ore, cloth, dust, inks...) and
+-- reagents. Not potions, food or gear a recipe happens to take (a cauldron takes
+-- potions: health potions showed up to deposit, 2026-11-04).
+local function isMaterial(id)
+    local classID = select(6, GetItemInfoInstant(id))
+    return classID == 7 or classID == 5
+end
+
+-- Every material this character's own professions craft with (+ herbs it mills).
+local function ownUseSet()
+    index()
+    local mine = {}
+    for _, idx in pairs({ GetProfessions() }) do
+        local _, _, rank, _, _, _, line = GetProfessionInfo(idx)
+        if line and (rank or 0) > 1 then mine[line] = true end   -- never leveled: not yours to keep for
+    end
+    local own = {}
+    for _, r in ipairs(VG.CRAFT or {}) do
+        if mine[r[3]] then
+            for _, m in ipairs(r.mats) do
+                for _, id in ipairs(m.ids) do
+                    own[id] = true
+                    for _, herb in ipairs(MILLED_FROM[id] or {}) do own[herb] = true end
+                end
+            end
+        end
+    end
+    return own
+end
+
+-- The other way round, for VoidBags' "Take my materials": what in the warband
+-- bank this character crafts with, so a deposit from another character (or
+-- the old deposit-everything) comes back in one click. Leaves disenchanting
+-- materials (they pool for your enchanter) and anything another character's
+-- crafting goal still needs. { [itemID] = count in the warband bank }; empty
+-- while the warband bank can't be read.
+function G:ToTake()
+    local out = {}
+    local account = Enum and Enum.BankType and Enum.BankType.Account
+    if not (account and C_Bank and C_Bank.CanViewBank and C_Bank.CanViewBank(account)) then return out end
+    local own, key = ownUseSet(), myKey()
+    -- disenchanting materials stay in the warband bank for the enchanter, so the
+    -- enchanter itself takes them (Murrath got 7 items and no dust, 2026-11-04)
+    local enchants = false
+    for _, idx in pairs({ GetProfessions() }) do
+        if idx and select(7, GetProfessionInfo(idx)) == 333 then enchants = true end
+    end
+    local held = {}
+    for _, g in ipairs(self:List()) do
+        if g.key ~= key then
+            for _, m in ipairs(g.recipe.mats) do
+                for _, id in ipairs(m.ids) do held[id] = true end
+            end
+        end
+    end
+    for _, tab in ipairs(C_Bank.FetchPurchasedBankTabData(account) or {}) do
+        for slot = 1, C_Container.GetContainerNumSlots(tab.ID) or 0 do
+            local info = C_Container.GetContainerItemInfo(tab.ID, slot)
+            local id = info and info.itemID
+            if id and own[id] and (enchants or not DE_MATS[id]) and not held[id] and isMaterial(id) then
+                out[id] = (out[id] or 0) + (info.stackCount or 1)
+            end
+        end
+    end
+    return out
+end
+
 function G:ToDeposit()
+    index()
     local key, mats, out = myKey(), {}, {}
+    -- what can go in the warband bank, per item, from the bags
+    local canGo = {}
+    local bankType = Enum and Enum.BankType and Enum.BankType.Account
+    for bag = 0, NUM_TOTAL_EQUIPPED_BAG_SLOTS or NUM_BAG_SLOTS or 4 do
+        for slot = 1, C_Container.GetContainerNumSlots(bag) or 0 do
+            local info = C_Container.GetContainerItemInfo(bag, slot)
+            if info and info.itemID and (allMats[info.itemID] or millHerb[info.itemID]) and isMaterial(info.itemID) then
+                local ok = true
+                if bankType and C_Bank and C_Bank.IsItemAllowedInBankType then
+                    ok = C_Bank.IsItemAllowedInBankType(bankType, ItemLocation:CreateFromBagAndSlot(bag, slot))
+                end
+                if ok then canGo[info.itemID] = (canGo[info.itemID] or 0) + (info.stackCount or 1) end
+            end
+        end
+    end
+    -- Your other characters' professions (base skill line): from the recipes
+    -- saved here, and VoidBags' record of every character's professions. A
+    -- profession counts for all its recipes' materials, learned or not yet
+    -- (Dawn Crystals before the enchanter knows a recipe that takes them).
+    local profsOf = {}
+    local function addProf(k, line)
+        if k and k ~= key and type(line) == "number" and leveled(k, line) then
+            profsOf[k] = profsOf[k] or {}
+            profsOf[k][line] = true
+        end
+    end
+    for k, c in pairs(store().crafters) do
+        for spell in pairs(c.recipes) do addProf(k, bySpell[spell] and bySpell[spell][3]) end
+    end
+    local chars = type(_G.VoidBagsDB) == "table" and type(VoidBagsDB.characters) == "table" and VoidBagsDB.characters
+    for _, c in pairs(chars or {}) do
+        if type(c) == "table" and type(c.professions) == "table" and type(c.displayKey) == "string" then
+            -- VoidBags keys by GetRealmName ("Laughing Skull"); ours is normalized
+            local name, realm = c.displayKey:match("^([^%-]+)%-(.+)$")
+            local k = name and (name .. "-" .. realm:gsub("[%s%-]", ""))
+            for line in pairs(c.professions) do addProf(k, line) end
+        end
+    end
+    -- item -> every one of those characters whose profession takes it ({ [key] = true })
+    local users = {}
+    local function use(id, k)
+        users[id] = users[id] or {}
+        users[id][k] = true
+    end
+    for _, r in ipairs(VG.CRAFT or {}) do
+        for k, lines in pairs(profsOf) do
+            if lines[r[3]] then
+                for _, m in ipairs(r.mats) do
+                    for _, id in ipairs(m.ids) do
+                        use(id, k)
+                        for _, herb in ipairs(MILLED_FROM[id] or {}) do use(herb, k) end
+                    end
+                end
+            end
+        end
+    end
+    -- What this character crafts with itself stays in its bags: depositing
+    -- everything sent Vede's own herbs and cooking ingredients away (11-03).
+    local ownUse = ownUseSet()
+    -- sorted list: keys[1] is shown first, all of them are named; nil = keep it
+    local function usersOf(id)
+        if not users[id] or (ownUse[id] and not DE_MATS[id]) then return nil end
+        local l = {}
+        for k in pairs(users[id]) do l[#l + 1] = k end
+        table.sort(l)
+        return l
+    end
+    local seen = {}
     -- per material, every crafter's need (yours too: it shares the warband bank)
     for _, g in ipairs(self:List()) do
         for _, m in ipairs(g.recipe.mats) do
@@ -436,7 +615,10 @@ function G:ToDeposit()
     end
     for id, e in pairs(mats) do
         local left = 0
-        for _, mid in ipairs(e.ids) do left = left + (GetItemCount(mid) or 0) end   -- bags only
+        for _, mid in ipairs(e.ids) do
+            left = left + (canGo[mid] or 0)
+            seen[mid] = true
+        end
         local short = shortages(e.ids, e.needBy)
         local keys = {}
         for k in pairs(short) do keys[#keys + 1] = k end
@@ -445,11 +627,24 @@ function G:ToDeposit()
             local n = math.min(short[k], left)
             if k ~= key and n > 0 then
                 left = left - n
-                out[#out + 1] = { id = id, ids = e.ids, count = n, key = k }
+                out[#out + 1] = { id = id, ids = e.ids, count = n, key = k, goal = true }
             end
+        end
+        -- the rest of it, when another character crafts with it anyway
+        local other = usersOf(id)
+        if left > 0 and other then
+            out[#out + 1] = { id = id, ids = e.ids, count = left, key = other[1], keys = other }
+        end
+    end
+    -- everything else your other characters craft with
+    for id, n in pairs(canGo) do
+        local other = not seen[id] and usersOf(id)
+        if other then
+            out[#out + 1] = { id = id, ids = { id }, count = n, key = other[1], keys = other }
         end
     end
     table.sort(out, function(a, b)
+        if (a.goal or false) ~= (b.goal or false) then return a.goal == true end   -- goals first
         if a.key ~= b.key then return a.key < b.key end
         return a.id < b.id
     end)
@@ -680,9 +875,11 @@ function G:Init()
             if G:Any() then VG.Earn:Update() end
         elseif event == "PLAYER_ENTERING_WORLD" then
             C_Timer.After(5, saveStock)   -- bags may not be counted yet the moment you log in
+            C_Timer.After(5, saveSkills)
         elseif event == "SKILL_LINES_CHANGED" then
             -- an empty list means "no professions" only well after login
             prune(GetTime() - loginAt > 15)
+            saveSkills()
         else
             recordSoon()
         end

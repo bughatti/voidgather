@@ -51,6 +51,7 @@ VoidGather builds your gathering routes as you play. Every vein, herb, skinnable
 - **Crafting goals, every profession** — in any recipe's profession window click **Set a crafting goal** (or **Add a goal** in the settings window) and pick how many to craft: food, potions, inks, enchants, gear. The earnings box then lists the materials still missing, on every character, the ones you gather first: "Azeroot 9/15"
 - **The list clears itself** — a material leaves the box once you have enough, the goal says "all in, craft on Vede" when everything's there, and it counts down as you craft
 - **Counts every character** — your bags, bank and warband bank, plus what your other characters held the last time you played them (with VoidBags installed, their bags count right away)
+- **Moves materials to whoever crafts with them** (with VoidBags) — at the bank, the Warband tab's **Deposit for crafters** puts in every material your other characters craft with (their crafting goals first), keeping what the character you're on uses itself; **Take my materials** brings back what this character crafts with. Only real crafting materials move, never potions or food, and a profession a character has never leveled doesn't count
 
 ### Gathering HUD
 - **Your minimap, big and see-through in front of you** and turning with you, so the game's own herb and ore dots (Find Herbs / Find Minerals) float around you while you fly, with VoidGather's spots on top

@@ -1,5 +1,9 @@
 # VoidGather Changelog
 
+## 0.4.7
+
+- **WoW Forever: the players box is right after a /reload.** Players who logged off stay on the sharing channel's list; VoidGather already left them out once a message to them bounced, but forgot that on every reload, so the count jumped up (5 instead of 2) for a minute. It now remembers.
+
 ## 0.4.6
 
 - **Known spots come with VoidGather.** A new character no longer starts with an empty map: VoidGather now ships with the spots its players have gathered so far (WoW Forever: Durotar, The Barrens, Tirisfal Glades, Silverpine Forest and Stonetalon Mountains; retail: Midnight zones). They show faded like shared spots, with "comes with VoidGather" on hover, and become yours once you gather there. Only spots gathered by hand or confirmed by two players are included. This matters most where few players of your faction use VoidGather, because sharing never crosses factions.

@@ -543,9 +543,36 @@ end
 ----------------------------------------------------------------------
 -- Channel join + zone catch-up
 ----------------------------------------------------------------------
+-- Joining is blocked in combat and during the chat lockdown (encounters): wait, then retry.
+local function chatLocked()
+    if InCombatLockdown() then return true end
+    local f = C_ChatInfo and C_ChatInfo.InChatMessagingLockdown
+    if not f then return false end
+    local ok, v = pcall(f)
+    if not ok then return true end
+    if issecretvalue and issecretvalue(v) then return true end
+    return v == true
+end
+local joinRetry = CreateFrame("Frame")
+joinRetry:SetScript("OnEvent", function(self)
+    if chatLocked() then return end
+    self:UnregisterAllEvents()
+    Sync:JoinNet()
+end)
+
 function Sync:JoinNet()
     if not enabled() then return end
-    if not netIndex() then JoinTemporaryChannel(CHANNEL_NAME) end
+    if not netIndex() then
+        if chatLocked() then
+            joinRetry:RegisterEvent("PLAYER_REGEN_ENABLED")
+            joinRetry:RegisterEvent("ZONE_CHANGED_NEW_AREA")
+            joinRetry:RegisterEvent("ENCOUNTER_END")
+            -- fires when a chat / addon restriction lifts (PvP match end, ...): Codex review
+            pcall(joinRetry.RegisterEvent, joinRetry, "ADDON_RESTRICTION_STATE_CHANGED")
+            return
+        end
+        JoinTemporaryChannel(CHANNEL_NAME)
+    end
     -- keep it out of the chat tabs
     if netIndex() and ChatFrame_RemoveChannel then
         for i = 1, (NUM_CHAT_WINDOWS or 10) do

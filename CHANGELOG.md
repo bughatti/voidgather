@@ -1,5 +1,9 @@
 # VoidGather Changelog
 
+## 0.4.4
+
+- **Fixed: sharing errors during encounters.** While the game's chat lockdown is on (boss fights), system messages are hidden from addons; VoidGather read one and errored. It now skips them, and joining the sharing channel waits until combat or the lockdown is over, then tries again.
+
 ## 0.4.3
 
 - **WoW Forever: offline players no longer counted or messaged.** Forever's sharing channel still lists players who have logged off. When one of them can't be reached, VoidGather now leaves them out for 30 minutes, so the players box shows who's really online and spots go to players who can get them.

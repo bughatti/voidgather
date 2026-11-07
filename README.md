@@ -64,7 +64,7 @@ VoidGather builds your gathering routes as you play. Every vein, herb, skinnable
 
 ### Gathering helpers
 - **Session loot tally** — what you've gathered this session, with an hourly rate
-- **Auto-switch Find Minerals / Find Herbs** (optional) — for miner-herbalists where only one tracker can run at a time; it only flips while you're moving and out of combat
+- **Auto-switch Find Minerals / Find Herbs** (optional) — for miner-herbalists where only one tracker can run at a time; it only flips while you're moving and out of combat, every 5 seconds by default (3, 5, 8 or 10 in the settings window)
 
 ### Settings window
 - **Open it from the Void hub icon by your minimap, the button on the world map, or `/vg options`.** Drag the title bar to move it; the x or Esc closes it. It has your skill-ups and where to go, show/hide filters for mining, herbs, skinning and lumber (with counts for the zone), "only nodes that give skill", "only my professions", world map dots, minimap pins (with size and opacity), auto-switch, sharing, the earnings and players-here boxes, item tooltips and the gathering HUD

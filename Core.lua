@@ -64,7 +64,7 @@ VG.defaults = {
     show = { mining = true, herb = true, skin = true, lumber = true },
     showMinimap = true,
     autoTrack = false,      -- cycle Find Minerals / Find Herbs (see Tracking.lua)
-    autoTrackSecs = 3,
+    autoTrackSecs = 5,      -- seconds between switches (settings window: 3 / 5 / 8 / 10)
     pinSize = 16,
     -- Minimap pins (user 2026-11-01: the squares were big and hid the terrain).
     mmPinSize = 11,         -- px; menu offers 9 / 11 / 13
@@ -91,6 +91,12 @@ function VG:Config()
     end
     for k, v in pairs(VG.defaults.show) do
         if cfg.show[k] == nil then cfg.show[k] = v end
+    end
+    -- 0.4.8: the default went from 3 to 5 s (user, 2026-11-07). Nobody could pick 3 before
+    -- (no setting), so a saved 3 is the old default: move it once.
+    if not cfg.autoTrackSecsSet then
+        if cfg.autoTrackSecs == 3 then cfg.autoTrackSecs = 5 end
+        cfg.autoTrackSecsSet = true
     end
     return cfg
 end

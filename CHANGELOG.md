@@ -1,5 +1,9 @@
 # VoidGather Changelog
 
+## 0.4.8
+
+- **Choose how often auto-switch flips Find Minerals / Find Herbs:** every 3, 5, 8 or 10 seconds, right under the Auto-switch box in the settings window. The default is now 5 seconds (was 3).
+
 ## 0.4.7
 
 - **WoW Forever: the players box is right after a /reload.** Players who logged off stay on the sharing channel's list; VoidGather already left them out once a message to them bounced, but forgot that on every reload, so the count jumped up (5 instead of 2) for a minute. It now remembers.

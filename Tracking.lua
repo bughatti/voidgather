@@ -59,7 +59,7 @@ end
 function T:Apply()
     if self.ticker then self.ticker:Cancel(); self.ticker = nil end
     if VG:Config().autoTrack then
-        self.ticker = C_Timer.NewTicker(math.max(2, VG:Config().autoTrackSecs or 3), tick)
+        self.ticker = C_Timer.NewTicker(math.max(2, VG:Config().autoTrackSecs or 5), tick)
     end
 end
 

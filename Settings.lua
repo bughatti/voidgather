@@ -284,6 +284,9 @@ local function build()
         function() return cfg.mmAlpha or 0.7 end, function(v) cfg.mmAlpha = v end)
 
     -- Gathering helpers
+    w.trackSecs = choice(f, "Switch every", { { "3 s", 3 }, { "5 s", 5 }, { "8 s", 8 }, { "10 s", 10 } },
+        function() return cfg.autoTrackSecs or 5 end,
+        function(v) cfg.autoTrackSecs = v; VG.Tracking:Apply() end)
     w.helpHead = header(f, "Gathering")
     w.helpChecks = {
         checkbox(f, "Auto-switch Find Minerals / Find Herbs",
@@ -390,7 +393,10 @@ function S:Refresh()
     y = y - 8
 
     place(w.helpHead, 18)
-    for _, cb in ipairs(w.helpChecks) do cb:Update(); place(cb, 20, 4) end
+    for i, cb in ipairs(w.helpChecks) do
+        cb:Update(); place(cb, 20, 4)
+        if i == 1 then w.trackSecs:Update(); place(w.trackSecs, 24, 4) end   -- under Auto-switch
+    end
     y = y - 8
 
     place(w.goalHead, 18)

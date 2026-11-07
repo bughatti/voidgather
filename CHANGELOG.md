@@ -1,5 +1,10 @@
 # VoidGather Changelog
 
+## 0.4.5
+
+- **WoW Forever: the players box shows the right count.** VoidGather, VoidQuest and VoidSweep each read their own sharing channel's member list, but the game hands out only one list at a time, so they took it from each other. A count could stick, and VoidGather could lose its list of players to ask for spots. They now take turns.
+- **Offline players stay off the count.** A player who logged off stays at 0 until a message to them goes through again. Before, they came back as "online" every 30 minutes.
+
 ## 0.4.4
 
 - **Fixed: sharing errors during encounters.** While the game's chat lockdown is on (boss fights), system messages are hidden from addons; VoidGather read one and errored. It now skips them, and joining the sharing channel waits until combat or the lockdown is over, then tries again.

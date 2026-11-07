@@ -115,7 +115,8 @@ local function pump()
     if not (C_ChatInfo and C_ChatInfo.SendAddonMessage) then return end
     if item.to then
         if net then net:Noted(item.to) end
-        C_ChatInfo.SendAddonMessage(PREFIX, item.msg, "WHISPER", item.to)
+        local result = C_ChatInfo.SendAddonMessage(PREFIX, item.msg, "WHISPER", item.to)
+        if net then net:Sent(item.to, result) end
     else
         local idx = netIndex()
         if idx then C_ChatInfo.SendAddonMessage(PREFIX, item.msg, "CHANNEL", idx) end

@@ -25,6 +25,7 @@ VoidGather builds your gathering routes as you play. Every vein, herb, skinnable
 - Turns itself off once you're maxed, so farming pins don't all go grey
 
 ### Shared with other players
+- **Not an empty map on day one** — VoidGather comes with known spots for the zones its players have gathered in (WoW Forever and retail), faded like shared spots. They become yours once you gather there
 - **Live sharing** — when another VoidGather player gathers a new spot on your realm, it shows up on your map
 - **Zone catch-up** — entering a zone asks other players for the spots they know there
 - **Easy to tell apart** — shared spots are smaller and faded, brighten once a second player confirms them, and become yours once you gather there

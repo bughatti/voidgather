@@ -104,6 +104,11 @@ function VoidGatherDataProviderMixin:RefreshAllData()
     self.drawnMapID = mapID
     if not mapID then return end
     if not VG:Config().showWorld then return end
+    for _, rec in ipairs(VG:SeedFor(mapID)) do   -- spots VoidGather ships with (Seed.lua)
+        if VG:Visible(rec.k) and not VG.Skill:Hidden(rec) then
+            map:AcquirePin(PIN_TEMPLATE, rec, mapID, true)
+        end
+    end
     for _, rec in ipairs(VG:SharedFor(mapID)) do
         if VG:Visible(rec.k) and not VG.Skill:Hidden(rec) then
             map:AcquirePin(PIN_TEMPLATE, rec, mapID, true)

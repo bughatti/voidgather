@@ -146,11 +146,63 @@ local function sameSpot(mapID, r, kind, name, x, y)
     return clean ~= nil and clean(r.n) == clean(name)
 end
 
+----------------------------------------------------------------------
+-- Seed spots (Seed.lua, generated): the spots VoidGather ships with, so a new player, or
+-- one whose faction has few VoidGather users (sharing never crosses factions), doesn't
+-- start with an empty map. Drawn like confirmed shared spots (r.seed = true). A seed
+-- spot you or other players already have is left out; gather there and it's yours.
+----------------------------------------------------------------------
+local SEED_KIND = { m = "mining", h = "herb", s = "skin", l = "lumber" }
+local SEED_ENTRY = "([mhsl]),(%d+),(%d+),([^;]*)"
+local seedCache = {}   -- [mapID] = visible seed records; cleared when spots change
+
+function VG:SeedFor(mapID)
+    if not mapID then return {} end
+    local c = seedCache[mapID]
+    if c then return c end
+    c = {}
+    local raw = VG.SeedData and VG.SeedData[mapID]
+    if raw then
+        local own, shared = nodesFor(mapID), sharedFor(mapID)
+        for k, x, y, n in raw:gmatch(SEED_ENTRY) do
+            local kind = SEED_KIND[k]
+            x, y = tonumber(x) / 10000, tonumber(y) / 10000
+            local known = false
+            for _, r in ipairs(own) do
+                if sameSpot(mapID, r, kind, n, x, y) then known = true; break end
+            end
+            if not known then
+                for _, r in ipairs(shared) do
+                    if sameSpot(mapID, r, kind, n, x, y) then known = true; break end
+                end
+            end
+            if not known then c[#c + 1] = { k = kind, n = n, x = x, y = y, c = 2, seed = true } end
+        end
+    end
+    seedCache[mapID] = c
+    return c
+end
+
+-- Is this spot in the seed? Sync doesn't send those: every VoidGather has them already
+-- (channel data stays as small as possible).
+function VG:SeedHas(kind, name, mapID, x, y)
+    local raw = VG.SeedData and VG.SeedData[mapID]
+    if not raw then return false end
+    for k, sx, sy, n in raw:gmatch(SEED_ENTRY) do
+        if SEED_KIND[k] == kind and sameSpot(mapID, { k = kind, n = n, x = tonumber(sx) / 10000, y = tonumber(sy) / 10000 },
+                                             kind, name, x, y) then
+            return true
+        end
+    end
+    return false
+end
+
 -- Add a spot someone else reported. Returns true if anything changed.
 function VG:AddShared(kind, name, mapID, x, y, sender)
     for _, r in ipairs(nodesFor(mapID)) do
         if sameSpot(mapID, r, kind, name, x, y) then return false end   -- you know it already
     end
+    seedCache[mapID] = nil   -- a new shared spot may cover a seed spot
     local list = sharedFor(mapID)
     for _, r in ipairs(list) do
         if sameSpot(mapID, r, kind, name, x, y) then
@@ -177,6 +229,7 @@ end
 -- Add or merge a gathered node. Returns the record and whether it was new.
 function VG:Record(kind, name, mapID, x, y)
     dropShared(mapID, kind, name, x, y)
+    seedCache[mapID] = nil   -- your gather replaces a seed spot there
     local list = nodesFor(mapID)
     local radius = VG.KINDS[kind].merge
     for _, r in ipairs(list) do
@@ -199,12 +252,13 @@ function VG:Record(kind, name, mapID, x, y)
     return r, true
 end
 
--- counts[kind] = your spots, shared[kind] = spots from other players
+-- counts[kind] = your spots, shared[kind] = spots from other players (and the seed)
 function VG:CountNodes(mapID)
     local counts, shared = {}, {}
     if not mapID then return counts, shared end
     for _, r in ipairs(nodesFor(mapID)) do counts[r.k] = (counts[r.k] or 0) + 1 end
     for _, r in ipairs(sharedFor(mapID)) do shared[r.k] = (shared[r.k] or 0) + 1 end
+    for _, r in ipairs(VG:SeedFor(mapID)) do shared[r.k] = (shared[r.k] or 0) + 1 end
     return counts, shared
 end
 
@@ -254,6 +308,10 @@ end
 
 -- Tooltip line(s) saying where a spot came from.
 function VG:TooltipSource(r, shared)
+    if r.seed then
+        GameTooltip:AddLine("Known spot (comes with VoidGather)", 0.4, 0.8, 1)
+        return
+    end
     local ago = SecondsToTime(math.max(60, time() - (r.t or time())), true)
     if shared then
         local who = (r.c or 1) >= 2 and ("%d players"):format(r.c) or (r.f or "another player")

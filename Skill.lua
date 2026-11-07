@@ -176,6 +176,9 @@ function S:BestSpots(kind, n)
     for mapID, list in pairs(VoidGatherDB and VoidGatherDB.shared or {}) do
         for _, r in ipairs(list) do add(mapID, r) end
     end
+    for mapID in pairs(VG.SeedData or {}) do   -- spots VoidGather ships with (Seed.lua)
+        for _, r in ipairs(VG:SeedFor(mapID)) do add(mapID, r) end
+    end
     local out = {}
     for mapID, z in pairs(zones) do
         local best

@@ -176,6 +176,8 @@ end
 -- Called by Gather a moment after a NEW spot of yours (loot has named it by then).
 function Sync:Share(mapID, rec)
     if not (enabled() and mapID and rec) then return end
+    -- every VoidGather ships with the seed's spots: don't send those (keep traffic small)
+    if VG:SeedHas(rec.k, rec.n, mapID, rec.x, rec.y) then return end
     sendSpots("N", mapID, { rec }, targets(FANOUT))
 end
 
@@ -194,9 +196,14 @@ function Sync:Ask(mapID)
 end
 
 -- Your own spots for a map, newest first, so a capped answer carries the freshest.
+-- Spots in the seed are left out: the asker's VoidGather ships with them.
 local function ownSpots(mapID, cap)
     local own, out = VG:NodesFor(mapID), {}
-    for i = #own, math.max(1, #own - cap + 1), -1 do out[#out + 1] = own[i] end
+    for i = #own, 1, -1 do
+        if #out >= cap then break end
+        local r = own[i]
+        if not VG:SeedHas(r.k, r.n, mapID, r.x, r.y) then out[#out + 1] = r end
+    end
     return out
 end
 

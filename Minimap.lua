@@ -13,7 +13,7 @@ local MM = VG.Minimap
 -- cadence made pins lag then snap -- visible jitter while flying (2026-10-21).
 -- Node lists are cached per map, so per-frame work is arithmetic + SetPoint.
 local pool, nActive = {}, 0
-local cacheMap, cacheOwn, cacheShared
+local cacheMap, cacheOwn, cacheShared, cacheSeed
 
 local function acquire()
     nActive = nActive + 1
@@ -75,6 +75,7 @@ function MM:Update()
     if not (ppos and w and h and w > 0 and h > 0) then hideRest(); return end
     if cacheMap ~= mapID then
         cacheMap, cacheOwn, cacheShared = mapID, VG:NodesFor(mapID), VG:SharedFor(mapID)
+        cacheSeed = VG:SeedFor(mapID)   -- spots VoidGather ships with (Seed.lua)
     end
 
     local px, py = ppos:GetXY()
@@ -125,6 +126,7 @@ function MM:Update()
             end
         end
     end
+    place(cacheSeed, true)
     place(cacheShared, true)
     place(cacheOwn, false)
     hideRest()

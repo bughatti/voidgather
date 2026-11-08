@@ -306,10 +306,13 @@ function VG:Visible(kind)
     return not cfg.onlyMine or VG:MyKinds()[kind] == true
 end
 
--- Your spots solid; shared spots faded until a second player confirms them.
-function VG:PinAlpha(r, shared)
-    if not shared then return 1 end
-    return (r.c or 1) >= 2 and 0.8 or 0.5
+-- Your spots solid; shared spots faded until a second player confirms them. A node you
+-- just picked on your layer fades further until it's back (Picked.lua; mapID needed).
+function VG:PinAlpha(r, shared, mapID)
+    local a = 1
+    if shared then a = (r.c or 1) >= 2 and 0.8 or 0.5 end
+    if mapID and VG.Picked then a = a * VG.Picked:Alpha(mapID, r) end
+    return a
 end
 
 -- Tooltip line(s) saying where a spot came from.

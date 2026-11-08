@@ -1,5 +1,11 @@
 # VoidGather Changelog
 
+## 0.4.13
+
+- **Nodes you just picked fade on the map and minimap** until they should be back, and their tooltip says "Picked 4 min ago · back in about 11 min". VoidGather learns how long each kind (herbs, ore, lumber) takes to come back from your own gathering; until it has seen that a few times it guesses 15 minutes. Skinning isn't tracked.
+- **WoW Forever: per layer.** A node is only gone on the layer you picked it on. VoidGather works out your layer from the NPCs around you, and a node you picked on another layer shows normally with "it may be up on yours", so after a layer change the nodes are fresh again.
+- All of it stays on your PC; nothing extra is sent.
+
 ## 0.4.12
 
 - **WoW Forever: sharing moved to a new password-protected channel, a fresh one every day.** The old channel was open: anyone could join it by hand, become its owner and ban players, which silently stops their sharing (it happened to VoidQuest's channel). Now every VoidGather player joins that day's channel with its password, and at 00:00 UTC everyone moves to the next one together, so even if someone gets in, it only lasts until the next day. Players on older versions aren't counted until they update. Retail is unchanged.

@@ -51,6 +51,7 @@ local function acquire()
             GameTooltip:AddLine(r.n ~= "?" and r.n or VG.KINDS[r.k].label, 1, 1, 1)
             VG.Skill:Tooltip(r)
             VG:TooltipSource(r, self.shared)
+            if VG.Picked then VG.Picked:Tooltip(C_Map.GetBestMapForUnit("player"), r) end
             GameTooltip:Show()
         end)
         p:SetScript("OnLeave", function() GameTooltip:Hide() end)
@@ -157,7 +158,7 @@ function MM:Update()
                         setMouse(p, not hud)
                     end
                     local edge = dist2 > (half * 0.75) ^ 2 and 0.55 or 1
-                    p:SetAlpha(mmAlpha * edge * VG:PinAlpha(r, shared) * (c == "grey" and 0.35 or 1))
+                    p:SetAlpha(mmAlpha * edge * VG:PinAlpha(r, shared, mapID) * (c == "grey" and 0.35 or 1))
                     p:ClearAllPoints()
                     p:SetPoint("CENTER", Minimap, "CENTER", sx, sy)
                 end

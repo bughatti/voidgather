@@ -46,7 +46,7 @@ function VoidGatherPinMixin:OnAcquired(rec, mapID, shared)
         self.ring:SetVertexColor(0, 0, 0)
     end
     self.ring:SetSize(side + 2, side + 2)
-    self:SetAlpha(VG:PinAlpha(rec, shared) * (c == "grey" and 0.35 or 1))
+    self:SetAlpha(VG:PinAlpha(rec, shared, mapID) * (c == "grey" and 0.35 or 1))
     self:Show()
 end
 
@@ -63,6 +63,7 @@ function VoidGatherPinMixin:OnMouseEnter()
     GameTooltip:AddLine(def.label, def.color[1], def.color[2], def.color[3])
     VG.Skill:Tooltip(r)
     VG:TooltipSource(r, self.shared)
+    if VG.Picked then VG.Picked:Tooltip(self.mapID, r) end
     GameTooltip:AddLine("Click for a waypoint", 0.6, 0.6, 0.6)
     GameTooltip:Show()
 end

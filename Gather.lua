@@ -93,6 +93,11 @@ function G:UNIT_SPELLCAST_SUCCEEDED(unit, castGUID, spellID)
     if not x or x == 0 and y == 0 then return end
     local rec, isNew = VG:Record(p.kind, p.name or "?", mapID, x, y)
     session.nodes[p.kind] = (session.nodes[p.kind] or 0) + 1
+    -- picked: faded on the map until it's back, on this layer only (Picked.lua)
+    if VG.Picked then
+        VG.Picked:Note(p.kind, mapID, rec and rec.x or x, rec and rec.y or y)
+        if not isNew then VG:Refresh() end
+    end
     lastGather = { kind = p.kind, t = GetTime(), rec = rec, mapID = mapID }
     if isNew then
         VG:Refresh()

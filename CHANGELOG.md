@@ -1,5 +1,10 @@
 # VoidGather Changelog
 
+## 0.4.12
+
+- **WoW Forever: sharing moved to a new password-protected channel, a fresh one every day.** The old channel was open: anyone could join it by hand, become its owner and ban players, which silently stops their sharing (it happened to VoidQuest's channel). Now every VoidGather player joins that day's channel with its password, and at 00:00 UTC everyone moves to the next one together, so even if someone gets in, it only lasts until the next day. Players on older versions aren't counted until they update. Retail is unchanged.
+- **"blocked" in the players box** when the game won't let you into the sharing channel, and `/vg net` says why.
+
 ## 0.4.11
 
 - **Quick switch: World map spots.** In the Void hub's Quick switches box (left-click the hub, or `/vquick`), hide or show VoidGather's spots on the world map when it gets crowded. The minimap keeps its own.

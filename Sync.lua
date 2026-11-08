@@ -40,7 +40,15 @@ local Sync = VG.Sync
 
 local PREFIX        = "VGATHER"
 local PROTO         = "1"
-local CHANNEL_NAME  = "VoidGatherNet"
+local CHANNEL_NAME  = "VoidGatherNet"   -- retail (older versions are there too)
+-- WoW Forever: a new channel every day, joined with a password, both worked out from the
+-- server's date (WhisperNet.lua "Daily channel"). Nobody can /join it by hand, own it and
+-- /ban players (that happened to VoidQuestNet, 2026-11-08), and if someone works it out
+-- anyway, it only lasts until 00:00 UTC. Set in Sync:Init once the game says it's Forever.
+local OLD_CHANNELS  = { "VoidGatherNet", "VoidGatherLink" }   -- left on Forever
+local DAILY_TAG, DAILY_SALT = "Vg", 48271
+local CHANNEL_PW
+local daily = false      -- Forever: CHANNEL_NAME is the day's channel
 local MAX_LEN       = 250    -- SendAddonMessage cap is 255
 local SEND_EVERY    = 1.1    -- seconds between our outgoing messages
 local QUEUE_MAX     = 60
@@ -247,15 +255,16 @@ local leaveTimer = {}     -- [zoneID] = pending "left" timer
 
 local function publish()
     if not _G.VoidPresence then return end
+    local note = enabled() and VG.WhisperNet and VG.WhisperNet.BlockNote(CHANNEL_NAME) or nil
     if net then
-        -- Forever: players online on VoidGatherNet (no zone counts without channel messages)
+        -- Forever: players online on the channel (no zone counts without channel messages)
         local others = net:Others()
-        VoidPresence:Set("VoidGather", "VoidGather online", others or 0, false, enabled() and others ~= nil)
+        VoidPresence:Set("VoidGather", "VoidGather online", others or 0, false, enabled() and others ~= nil, note)
         return
     end
     local n = 0
     for _ in pairs(hereZone and rosters[hereZone] or {}) do n = n + 1 end
-    VoidPresence:Set("VoidGather", "VoidGather", n, capped[hereZone or 0] or n >= HERE_CAP, enabled() and hereZone ~= nil)
+    VoidPresence:Set("VoidGather", "VoidGather", n, capped[hereZone or 0] or n >= HERE_CAP, enabled() and hereZone ~= nil, note)
 end
 
 -- Roll a map up to its zone (city floors, caves and subzones count as the zone).
@@ -345,7 +354,10 @@ end
 -- Forever: "N other VoidGather players online" from the channel's member list.
 local function printOnline()
     local others = net:Others()
-    if not others then
+    local why = VG.WhisperNet.BlockReason(CHANNEL_NAME)
+    if why then
+        print(VG.PREFIX .. " |cffff5555" .. why .. "|r")
+    elseif not others then
         print(VG.PREFIX .. " couldn't read " .. CHANNEL_NAME .. "'s member list yet, try again in a few seconds.")
     else
         print(("%s %s%d|r other VoidGather player%s online (WoW Forever can't count by zone)."):format(VG.PREFIX,
@@ -373,6 +385,7 @@ local function recount()
     local zone = currentZone()
     if not (_G.VoidPresence and VoidPresence:IsShown()) then return end
     if net then
+        publish()   -- a blocked channel is never read, so say so now
         if enabled() then net:RequestRoster(true) end   -- publish() runs when it's read
         return
     end
@@ -570,6 +583,13 @@ end)
 
 function Sync:JoinNet()
     if not enabled() then return end
+    -- Forever: out of the old channels first, so their slots are free for the new one (Codex
+    -- review). A banned one can't be left; it goes at logout.
+    if daily and not chatLocked() then
+        for _, old in ipairs(OLD_CHANNELS) do
+            if (GetChannelName(old) or 0) > 0 then LeaveChannelByName(old) end
+        end
+    end
     if not netIndex() then
         if chatLocked() then
             joinRetry:RegisterEvent("PLAYER_REGEN_ENABLED")
@@ -579,7 +599,8 @@ function Sync:JoinNet()
             pcall(joinRetry.RegisterEvent, joinRetry, "ADDON_RESTRICTION_STATE_CHANGED")
             return
         end
-        JoinTemporaryChannel(CHANNEL_NAME)
+        JoinTemporaryChannel(CHANNEL_NAME, CHANNEL_PW)
+        C_Timer.After(5, publish)   -- a refused join shows as "blocked"
     end
     -- keep it out of the chat tabs
     if netIndex() and ChatFrame_RemoveChannel then
@@ -625,6 +646,11 @@ local HEARD_MAX = 500   -- players remembered for /vg net
 function Sync:Init()
     local Net = VG.WhisperNet
     if Net and Net.Active() then
+        daily = true
+        local today
+        CHANNEL_NAME, CHANNEL_PW, today = Net.DailyChannel(DAILY_TAG, DAILY_SALT)
+        -- channels survive a /reload: yesterday's goes too (reload across 00:00 UTC, Codex)
+        table.insert(OLD_CHANNELS, (Net.DailyChannel(DAILY_TAG, DAILY_SALT, today - 1)))
         -- WoW Forever: the channel is a member list, messages go by addon whisper
         -- offline marks saved per account, so a /reload doesn't count logged-off players
         VoidGatherDB = VoidGatherDB or {}
@@ -677,6 +703,26 @@ function Sync:Init()
     end)
     C_Timer.NewTicker(RECOUNT, recount)
     VoidPresence:Listen(function() Sync:CountNow() end)
+    -- Forever: at 00:00 UTC everyone moves to the new day's channel together
+    if daily then
+        C_Timer.NewTicker(60, function()
+            local name, pw = Net.DailyChannel(DAILY_TAG, DAILY_SALT)
+            if name == CHANNEL_NAME then return end
+            local old = CHANNEL_NAME
+            CHANNEL_NAME, CHANNEL_PW = name, pw
+            net:SetChannel(name)
+            table.insert(OLD_CHANNELS, old)   -- JoinNet leaves it (now, or once chat unlocks)
+            publish()   -- "—" until the new list is read
+            if not enabled() then
+                if (GetChannelName(old) or 0) > 0 and not chatLocked() then LeaveChannelByName(old) end
+                return
+            end
+            C_Timer.After(2, function()
+                Sync:JoinNet()
+                C_Timer.After(3, function() net:RequestRoster(true) end)
+            end)
+        end)
+    end
 end
 
 ----------------------------------------------------------------------

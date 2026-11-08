@@ -415,6 +415,7 @@ local function take()
     Minimap:EnableMouseWheel(false)
     SetCVar("rotateMinimap", "1")   -- up = the way you face
     active = true
+    if H._syncShift then H._syncShift() end   -- Shift already held
     return true
 end
 
@@ -432,6 +433,7 @@ local function giveBack()
     Minimap:SetFrameLevel(s.level)
     Minimap:SetAlpha(s.alpha)
     Minimap:EnableMouse(s.mouse)
+    if H._shiftOff then H._shiftOff() end   -- (a held Shift had turned it on)
     Minimap:EnableMouseWheel(s.wheel)
     local own = s.own
     SetCVar("rotateMinimap", own.rotate)
@@ -483,7 +485,8 @@ function H:SetShown(on)
     self:Refresh()
     local later = pending ~= nil
     print(VG.PREFIX .. " gathering HUD " .. (on and "|cff33ff33on|r" or "|cffff5555off|r")
-        .. (later and " |cffffd200(after combat)|r" or ""))
+        .. (later and " |cffffd200(after combat)|r" or "")
+        .. (on and " |cff888888(hold Shift over it to see what a dot is)|r" or ""))
 end
 
 function H:Toggle() self:SetShown(not VG:Config().hud) end
@@ -496,6 +499,7 @@ function H:ToggleMove()
     elseif hud and active then
         layout()
     end
+    if H._syncShift then H._syncShift() end
     print(VG.PREFIX .. (moving and " HUD unlocked: drag it, then Move HUD (or /vg hud move) again to lock."
         or " HUD locked: it lets clicks through again."))
 end
@@ -541,6 +545,30 @@ function H:Init()
     C_Timer.NewTicker(1, function()
         if active and not InCombatLockdown() then parkAll(true) end
     end)
+    -- What's that yellow dot? (the user, 2026-11-07: the HUD hid the game's dot tooltips.)
+    -- The minimap is click-through in the HUD, so the game's own hover tooltip
+    -- (Minimap_OnEnter -> SetMinimapMouseover) never runs. Asking the minimap ourselves
+    -- with the mouse off gives nothing (tested in game), and leaving its mouse on would
+    -- take over the middle of the screen (world mouseover, clicking nodes). So: hold
+    -- Shift over the HUD and the minimap takes the mouse; let go and it's click-through.
+    -- Synced on Shift changes, HUD on / off / move and combat end (Sol, 2026-11-07: a Shift
+    -- already held when the HUD came on, or a release blocked in combat, stuck otherwise).
+    local shiftMouse = false
+    local function syncShift()
+        local want = active and not moving and IsShiftKeyDown() and true or false
+        if want == shiftMouse then return end
+        if InCombatLockdown() and Minimap:IsProtected() then return end   -- retried when combat ends
+        shiftMouse = want
+        Minimap:EnableMouse(want)
+    end
+    H._syncShift = syncShift
+    local mod = CreateFrame("Frame")
+    mod:RegisterEvent("MODIFIER_STATE_CHANGED")
+    mod:RegisterEvent("PLAYER_REGEN_ENABLED")
+    mod:SetScript("OnEvent", syncShift)
+    H._shiftOff = function()   -- giving the minimap back resets its mouse itself
+        shiftMouse = false
+    end
     local f = CreateFrame("Frame")
     f:RegisterEvent("PLAYER_REGEN_ENABLED")
     f:RegisterEvent("PLAYER_LOGOUT")

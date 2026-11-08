@@ -35,6 +35,14 @@ local function acquire()
         p.icon = p:CreateTexture(nil, "ARTWORK")
         p.icon:SetAllPoints()
         p.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
+        -- "around" mode (the game tracks this kind): four ticks round the spot, the
+        -- middle left empty for the game's own yellow dot (see MM:Update)
+        p.ticks = {}
+        for i = 1, 4 do
+            local t = p:CreateTexture(nil, "ARTWORK")
+            t:SetSize(3, 3)
+            p.ticks[i] = t
+        end
         p:EnableMouse(true)
         p:SetScript("OnEnter", function(self)
             local r = self.rec
@@ -49,11 +57,16 @@ local function acquire()
         pool[nActive] = p
     end
     p:Show()
-    -- on the gathering HUD the pins let clicks through (it sits over the world)
-    local mouse = not VG.HUD:IsActive()
-    if p.mouseOn ~= mouse then p:EnableMouse(mouse); p.mouseOn = mouse end
     return p
 end
+
+-- on the gathering HUD the pins let clicks through (it sits over the world); "around"
+-- pins too, so hovering the game's yellow dot shows the game's own tooltip
+local function setMouse(p, mouse)
+    if p.mouseOn ~= mouse then p:EnableMouse(mouse); p.mouseOn = mouse end
+end
+
+local TICK = { { 0, 1 }, { 1, 0 }, { 0, -1 }, { -1, 0 } }
 
 local function hideRest()
     for i = nActive + 1, #pool do pool[i]:Hide(); pool[i].rec = nil end
@@ -89,8 +102,15 @@ function MM:Update()
     local baseSize = VG.HUD:IsActive() and (cfg.hudPinSize or 16) or cfg.mmPinSize or 11
     local mmAlpha = cfg.mmAlpha or 0.7
     -- visibility per kind once per frame, not VG:Visible() per record
-    local vis = {}
-    for k in pairs(VG.KINDS) do vis[k] = VG:Visible(k) end
+    local vis, around = {}, {}
+    for k in pairs(VG.KINDS) do
+        vis[k] = VG:Visible(k)
+        -- the game shows live nodes of this kind as yellow dots: our pins can never cover
+        -- them (child frames always draw over the minimap's own dots), so they mark the
+        -- spot from around it instead (the user, 2026-11-07)
+        around[k] = VG.Tracking and VG.Tracking.GameTracks and VG.Tracking:GameTracks(k) or false
+    end
+    local hud = VG.HUD:IsActive()
 
     local function place(list, shared)
         local size = shared and math.max(7, baseSize - 2) or baseSize
@@ -105,19 +125,37 @@ function MM:Update()
                     local def = VG.KINDS[r.k]
                     p.rec, p.shared = r, shared
                     p:SetSize(size, size)
-                    p.ring:SetSize(size + 3, size + 3)
-                    p.ring:SetVertexColor(def.color[1], def.color[2], def.color[3])
-                    -- skill-up color as a frame around the icon (see Skill.lua)
                     local c = VG.Skill:Color(r.k, r.n)
                     local col = c and VG.Skill.COLORS[c]
-                    if col then
-                        p.frame:SetSize(size + 2, size + 2)   -- 1px skill-color edge
-                        p.frame:SetColorTexture(col[1], col[2], col[3])
-                        p.frame:Show()
+                    if around[r.k] then
+                        -- four ticks just outside the game's dot, in the skill-up color
+                        -- (else the kind's); nothing over the middle
+                        p.ring:Hide(); p.frame:Hide(); p.icon:Hide()
+                        local tc = col or def.color
+                        local off = math.max(7, size * 0.75)
+                        for i, t in ipairs(p.ticks) do
+                            t:SetColorTexture(tc[1], tc[2], tc[3])
+                            t:ClearAllPoints()
+                            t:SetPoint("CENTER", p, "CENTER", TICK[i][1] * off, TICK[i][2] * off)
+                            t:Show()
+                        end
+                        setMouse(p, false)
                     else
-                        p.frame:Hide()
+                        for _, t in ipairs(p.ticks) do t:Hide() end
+                        p.ring:Show(); p.icon:Show()
+                        p.ring:SetSize(size + 3, size + 3)
+                        p.ring:SetVertexColor(def.color[1], def.color[2], def.color[3])
+                        -- skill-up color as a frame around the icon (see Skill.lua)
+                        if col then
+                            p.frame:SetSize(size + 2, size + 2)   -- 1px skill-color edge
+                            p.frame:SetColorTexture(col[1], col[2], col[3])
+                            p.frame:Show()
+                        else
+                            p.frame:Hide()
+                        end
+                        p.icon:SetTexture(def.icon)
+                        setMouse(p, not hud)
                     end
-                    p.icon:SetTexture(def.icon)
                     local edge = dist2 > (half * 0.75) ^ 2 and 0.55 or 1
                     p:SetAlpha(mmAlpha * edge * VG:PinAlpha(r, shared) * (c == "grey" and 0.35 or 1))
                     p:ClearAllPoints()

@@ -16,6 +16,7 @@ VoidGather builds your gathering routes as you play. Every vein, herb, skinnable
 - **Only your professions** — spots for professions you don't have stay hidden (lumber always shows); switch it off in the settings window
 - **Click a pin for a waypoint** — Blizzard's waypoint and arrow, cleared when you arrive
 - **Minimap pins** are small and see-through so the map shows through, and fade near the edge so close spots stand out. Pick their size and opacity from the world map button
+- **Never on top of the game's dots** — while Find Herbs or Find Minerals is on, those spots are marked with four small ticks around them, so the game's yellow dot for a live node shows in the middle and its tooltip still works
 
 ### Skill-ups: where to level Herbalism and Mining
 - **Pins show if they still give you skill**, in the profession window's colors: an **orange** outline always gives a point, **yellow** usually, **green** rarely, and **grey** never (grey pins fade). Black means no skill info, such as an older expansion's node
@@ -56,7 +57,7 @@ VoidGather builds your gathering routes as you play. Every vein, herb, skinnable
 
 ### Gathering HUD
 - **Your minimap, big and see-through in front of you** and turning with you, so the game's own herb and ore dots (Find Herbs / Find Minerals) float around you while you fly, with VoidGather's spots on top
-- **Click-through** while you play; **Move HUD** in the settings window to place it, three sizes, and how much of the map shows underneath
+- **Click-through** while you play; **hold Shift** over it to see what a dot is. **Move HUD** in the settings window to place it, three sizes, and how much of the map shows underneath
 - **Nothing gets lost** — the minimap's buttons wait where it normally sits, and turning the HUD off puts everything back, zoom and rotation included
 - **A compass** on its rim (N, E, S, W turning with you) and your heading above it
 - **VoidSweep's rares and treasures** show on it too, if you have VoidSweep

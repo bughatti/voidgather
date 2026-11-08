@@ -30,6 +30,24 @@ local function isActive(i)
     return info and info.active
 end
 
+-- Is the game's own tracking on for this kind (Find Herbs / Find Minerals)? Then the
+-- minimap shows live nodes as yellow dots, which our pins must never cover (Minimap.lua).
+-- Cached; MINIMAP_UPDATE_TRACKING clears it.
+local trackedCache
+function T:GameTracks(kind)
+    if not trackedCache then
+        local m, h = findIndices()
+        trackedCache = { mining = isActive(m) and true or false, herb = isActive(h) and true or false }
+    end
+    return trackedCache[kind] or false
+end
+do
+    local ev = CreateFrame("Frame")
+    ev:RegisterEvent("MINIMAP_UPDATE_TRACKING")
+    ev:RegisterEvent("PLAYER_ENTERING_WORLD")
+    ev:SetScript("OnEvent", function() trackedCache = nil end)
+end
+
 local function safeToSwitch()
     if InCombatLockdown() or UnitAffectingCombat("player") then return false end
     if UnitCastingInfo("player") or UnitChannelInfo("player") then return false end

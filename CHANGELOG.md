@@ -1,5 +1,10 @@
 # VoidGather Changelog
 
+## 0.4.9
+
+- **Minimap pins never cover the game's herb and ore dots.** While Find Herbs or Find Minerals is on, VoidGather marks those spots with four small ticks around them (in the skill-up color), so the yellow dot of a live node shows in the middle, and hovering it shows the game's tooltip again.
+- **Gathering HUD: hold Shift to see what a dot is.** The HUD stays click-through while you play; holding Shift over it lets you hover the game's dots for their names.
+
 ## 0.4.8
 
 - **Choose how often auto-switch flips Find Minerals / Find Herbs:** every 3, 5, 8 or 10 seconds, right under the Auto-switch box in the settings window. The default is now 5 seconds (was 3).

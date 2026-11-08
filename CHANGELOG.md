@@ -1,5 +1,9 @@
 # VoidGather Changelog
 
+## 0.4.10
+
+- **Quick switch for the gathering HUD:** left-click the Void hub button by your minimap and a Quick switches box opens next to the addon icons, with Gathering HUD on/off (also `/vquick`).
+
 ## 0.4.9
 
 - **Minimap pins never cover the game's herb and ore dots.** While Find Herbs or Find Minerals is on, VoidGather marks those spots with four small ticks around them (in the skill-up color), so the yellow dot of a live node shows in the middle, and hovering it shows the game's tooltip again.

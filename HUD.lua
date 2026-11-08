@@ -613,3 +613,12 @@ end
 BINDING_HEADER_VOIDGATHER = "VoidGather"
 BINDING_NAME_VOIDGATHER_HUD = "Gathering HUD on/off"
 function VoidGather_ToggleHUD() H:Toggle() end
+
+-- A switch in the Void hub's quick box (left-click the hub; VoidHubBundle.lua)
+VoidHubToggles = VoidHubToggles or {}
+table.insert(VoidHubToggles, {
+    id = "VoidGather.hud", group = "Gathering", label = "Gathering HUD",
+    tip = "The big see-through minimap with the game's herb and ore dots. Hold Shift over it to see what a dot is.",
+    get = function() return VG:Config().hud end,
+    set = function(on) H:SetShown(on and true or false) end,
+})

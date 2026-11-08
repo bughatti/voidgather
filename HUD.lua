@@ -617,8 +617,15 @@ function VoidGather_ToggleHUD() H:Toggle() end
 -- A switch in the Void hub's quick box (left-click the hub; VoidHubBundle.lua)
 VoidHubToggles = VoidHubToggles or {}
 table.insert(VoidHubToggles, {
-    id = "VoidGather.hud", group = "Gathering", label = "Gathering HUD",
+    id = "VoidGather.hud", group = "Gathering", label = "Gathering HUD", order = 1,
     tip = "The big see-through minimap with the game's herb and ore dots. Hold Shift over it to see what a dot is.",
     get = function() return VG:Config().hud end,
     set = function(on) H:SetShown(on and true or false) end,
+})
+-- the world map gets crowded when you're doing something else (the user, 2026-11-07)
+table.insert(VoidHubToggles, {
+    id = "VoidGather.world", group = "Gathering", label = "World map spots", order = 2,
+    tip = "VoidGather's herb, ore, skinning and lumber spots on the world map. The minimap keeps its own.",
+    get = function() return VG:Config().showWorld end,
+    set = function(on) VG:Config().showWorld = on and true or false; VG:Refresh() end,
 })

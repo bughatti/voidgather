@@ -1,5 +1,9 @@
 # VoidGather Changelog
 
+## 0.4.11
+
+- **Quick switch: World map spots.** In the Void hub's Quick switches box (left-click the hub, or `/vquick`), hide or show VoidGather's spots on the world map when it gets crowded. The minimap keeps its own.
+
 ## 0.4.10
 
 - **Quick switch for the gathering HUD:** left-click the Void hub button by your minimap and a Quick switches box opens next to the addon icons, with Gathering HUD on/off (also `/vquick`).

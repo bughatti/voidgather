@@ -1,5 +1,9 @@
 # VoidGather
 
+**Works on:** WoW Midnight · WoW Forever
+
+> **WoW Forever players: please update to the latest version.** Versions from before November 8, 2026 use the old sharing channels, so they can't share with current players and aren't counted in the Players online box. The CurseForge app updates it for you; if you installed by hand, download the newest file.
+
 **Remembers every mining, herb, skinning and lumber spot you gather, shares them with other players, and shows them all on your map.**
 
 VoidGather builds your gathering routes as you play. Every vein, herb, skinnable spot and tree you chop is saved to your world map and minimap. Spots found by other VoidGather players arrive automatically, so you can find nodes in zones you've never farmed. It works in WoW Forever and in Midnight.
@@ -125,8 +129,8 @@ VoidGather builds your gathering routes as you play. Every vein, herb, skinnable
 
 ## Compatibility
 
+- **WoW Midnight** 12.1.5 (Season 2)
 - **WoW Forever**
-- **WoW 12.1.5** (Midnight Season 2)
 - Standalone — nothing else to install
 
 ---

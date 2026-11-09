@@ -1,5 +1,9 @@
 # VoidGather Changelog
 
+## 0.4.14
+
+- **Fixed: box borders missing a side.** Depending on where a window sat on screen, its left, right or bottom line could vanish. Borders are now exactly one screen pixel and can't round away.
+
 ## 0.4.13
 
 - **Nodes you just picked fade on the map and minimap** until they should be back, and their tooltip says "Picked 4 min ago · back in about 11 min". VoidGather learns how long each kind (herbs, ore, lumber) takes to come back from your own gathering; until it has seen that a few times it guesses 15 minutes. Skinning isn't tracked.

@@ -1,5 +1,9 @@
 # VoidGather Changelog
 
+## 0.4.15
+
+- **Nothing about other players is saved any more:** the short list of players who had just logged off (it kept the online count right after a reload) now lasts only for your session, and the old saved list is deleted.
+
 ## 0.4.14
 
 - **Fixed: box borders missing a side.** Depending on where a window sat on screen, its left, right or bottom line could vanish. Borders are now exactly one screen pixel and can't round away.

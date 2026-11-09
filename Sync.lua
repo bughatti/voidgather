@@ -652,10 +652,11 @@ function Sync:Init()
         -- channels survive a /reload: yesterday's goes too (reload across 00:00 UTC, Codex)
         table.insert(OLD_CHANNELS, (Net.DailyChannel(DAILY_TAG, DAILY_SALT, today - 1)))
         -- WoW Forever: the channel is a member list, messages go by addon whisper
-        -- offline marks saved per account, so a /reload doesn't count logged-off players
+        -- offline marks (players whose whisper bounced): this session only, never saved (the user,
+        -- 2026-11-09: "get rid of the offline list"); the old saved list is deleted
         VoidGatherDB = VoidGatherDB or {}
-        VoidGatherDB.netOffline = VoidGatherDB.netOffline or {}
-        net = Net.New(CHANNEL_NAME, publish, VoidGatherDB.netOffline)
+        VoidGatherDB.netOffline = nil
+        net = Net.New(CHANNEL_NAME, publish, {})
         me = Net.Me()
     else
         me = UnitName("player")

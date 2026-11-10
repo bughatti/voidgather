@@ -34,6 +34,9 @@ VG.CharSettings.Register(ADDON, "VoidGatherDB", { "config" },
     { "config.earnPos", "config.hudPos", "config.settingsPos" })
 
 VG.PREFIX = "|cff00c7ffVoidGather|r"
+-- WoW Forever (TOC 16001): Classic content on the modern client. Gates the
+-- Forever-only paths below and in Skill/Goals/Settings (Forever audit, 2026-11-10).
+VG.IS_FOREVER = (select(4, GetBuildInfo()) or 0) < 100000
 
 -- spells = base profession spell IDs; their LOCALIZED names are matched at
 -- runtime, so every expansion's own "Mining"/"Herb Gathering" cast counts
@@ -55,6 +58,9 @@ VG.KINDS = {
                merge = 12 },
 }
 VG.KIND_ORDER = { "mining", "herb", "skin", "lumber" }
+-- Forever has no Midnight lumber: no "Lumber" checkbox or /vg zone count there. The kind
+-- itself stays in VG.KINDS so saved / shared records still resolve (Forever audit, 2026-11-10).
+if VG.IS_FOREVER then VG.KIND_ORDER = { "mining", "herb", "skin" } end
 do
     local tex = C_Spell and C_Spell.GetSpellTexture and C_Spell.GetSpellTexture(1239682)
     if tex then VG.KINDS.lumber.icon = tex end
@@ -363,9 +369,13 @@ SlashCmdList.VOIDGATHER = function(msg)
         print(VG.PREFIX .. " auto-switch Find Minerals/Herbs " .. (cfg.autoTrack and "|cff33ff33on|r" or "|cffff5555off|r"))
     elseif msg == "best" then
         -- each profession you're leveling: where to go; the waypoint goes to the stronger spot
-        local any, best, bestKind = false, nil, nil
+        local any, best, bestKind, capped = false, nil, nil, {}
         for _, k in ipairs({ "herb", "mining" }) do
             local lv = VG.Skill:Level(k)
+            -- at a rank cap (75/150/225 on WoW Forever): say so, don't claim there's nothing to level
+            if VG.IS_FOREVER and lv and lv[1] >= lv[2] and lv[2] > 0 and lv[2] < 300 then
+                capped[#capped + 1] = ("%s is at its cap (%d): train the next rank."):format(VG.SKILLUP[k].label, lv[2])
+            end
             if lv and lv[1] < lv[2] then
                 any = true
                 local spot = VG.Skill:BestSpots(k, 1)[1]
@@ -374,7 +384,8 @@ SlashCmdList.VOIDGATHER = function(msg)
                 if spot and (not best or spot.score > best.score) then best, bestKind = spot, k end
             end
         end
-        if not any then
+        for _, line in ipairs(capped) do print(VG.PREFIX .. " " .. line) end
+        if not any and #capped == 0 then
             print(VG.PREFIX .. " no Herbalism or Mining to level on this character.")
         elseif best then
             VG.Nav:Goto(best.mapID, best.x, best.y, VG.SKILLUP[bestKind].label .. " skill-ups")

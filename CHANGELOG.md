@@ -1,5 +1,9 @@
 # VoidGather Changelog
 
+## 0.4.16
+
+- **WoW Forever:** Herbalism and Mining skill now read correctly there: node skill colours, the Settings skill rows and `/vg best` work (it says when you're at a rank cap). Crafting goals and the lumber option are hidden there.
+
 ## 0.4.15
 
 - **Nothing about other players is saved any more:** the short list of players who had just logged off (it kept the online count right after a reload) now lasts only for your session, and the old saved list is deleted.

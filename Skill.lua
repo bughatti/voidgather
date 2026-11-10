@@ -9,8 +9,8 @@
 -- menu's "Only nodes that give skill" hides them.
 --
 -- No coloring when it can't help: nodes from other expansions, a profession
--- you don't have, WoW Forever (no data), or a maxed profession (everything
--- would be grey while you farm).
+-- you don't have, or a maxed profession (everything would be grey while you
+-- farm). WoW Forever uses the Classic table below instead of GatherData.lua.
 ----------------------------------------------------------------------
 local ADDON, VG = ...
 VG.Skill = {}
@@ -20,6 +20,40 @@ S.COLORS = {
     orange = { 1.00, 0.50, 0.25 }, yellow = { 1.00, 1.00, 0.00 },
     green  = { 0.25, 0.75, 0.25 }, grey   = { 0.50, 0.50, 0.50 },
 }
+
+-- WoW Forever: GatherData.lua only knows Midnight nodes and lines, so Forever had no
+-- colouring, no Settings skill rows and "/vg best" said there was nothing to level.
+-- Classic node skills (same table as VoidProf/GatherPlan.lua; VoidGather must not need
+-- VoidProf loaded) with Classic's gathering colours: orange below req+25, yellow below
+-- req+50, green below req+100, then grey. Entry = { yellow, grey, green, req }; skill is
+-- read by base skill line (182 / 186, or the tier lines 2944 / 2946) (Forever audit, 2026-11-10).
+if VG.IS_FOREVER then
+    local REQ = {
+        herb = {
+            ["Peacebloom"] = 1, ["Silverleaf"] = 1, ["Earthroot"] = 15, ["Mageroyal"] = 50, ["Briarthorn"] = 70,
+            ["Stranglekelp"] = 85, ["Bruiseweed"] = 100, ["Wild Steelbloom"] = 115, ["Grave Moss"] = 120,
+            ["Kingsblood"] = 125, ["Liferoot"] = 150, ["Fadeleaf"] = 160, ["Goldthorn"] = 170,
+            ["Khadgar's Whisker"] = 185, ["Wintersbite"] = 195, ["Firebloom"] = 205, ["Purple Lotus"] = 210,
+            ["Arthas' Tears"] = 220, ["Sungrass"] = 230, ["Blindweed"] = 235, ["Ghost Mushroom"] = 245,
+            ["Gromsblood"] = 250, ["Golden Sansam"] = 260, ["Dreamfoil"] = 270, ["Mountain Silversage"] = 280,
+            ["Plaguebloom"] = 285, ["Icecap"] = 290, ["Black Lotus"] = 300,
+        },
+        mining = {
+            ["Copper Vein"] = 1, ["Tin Vein"] = 65, ["Incendicite Mineral Vein"] = 65, ["Silver Vein"] = 75,
+            ["Lesser Bloodstone Deposit"] = 75, ["Iron Deposit"] = 125, ["Gold Vein"] = 155, ["Mithril Deposit"] = 175,
+            ["Truesilver Deposit"] = 230, ["Dark Iron Deposit"] = 230, ["Small Thorium Vein"] = 245, ["Rich Thorium Vein"] = 275,
+        },
+    }
+    local function build(kind, label, lines)
+        local nodes = {}
+        for name, req in pairs(REQ[kind]) do nodes[name] = { req + 25, req + 100, req + 50, req } end
+        return { label = label, lines = lines, forever = true, nodes = nodes }
+    end
+    VG.SKILLUP = {
+        herb   = build("herb", "Herbalism", { [182] = true, [2944] = true }),
+        mining = build("mining", "Mining", { [186] = true, [2946] = true }),
+    }
+end
 
 -- Skill per kind for this expansion's line: { level, max } or nil. Cached
 -- briefly: the minimap asks every frame.
@@ -31,7 +65,7 @@ function S:Level(kind)
     if cache[kind] == nil then
         local v = false
         local fn = C_TradeSkillUI and C_TradeSkillUI.GetProfessionInfoBySkillLineID
-        if fn then
+        if fn and def.line then   -- Forever defs have no .line: the book below only (Forever audit, 2026-11-10)
             local ok, info = pcall(fn, def.line)
             if ok and info and (info.maxSkillLevel or 0) > 0 then v = { info.skillLevel or 0, info.maxSkillLevel } end
         end
@@ -43,8 +77,13 @@ function S:Level(kind)
             local p1, p2 = GetProfessions()
             for _, idx in ipairs({ p1 or 0, p2 or 0 }) do
                 if idx ~= 0 then
-                    local _, _, rank, maxRank, _, _, _, _, _, _, lineName = GetProfessionInfo(idx)
-                    if lineName and lineName == def.lineName and (maxRank or 0) > 0 then v = { rank or 0, maxRank } end
+                    local _, _, rank, maxRank, _, _, skillLine, _, _, _, lineName = GetProfessionInfo(idx)
+                    -- Forever: match the 7th return (skill line id) instead of the Midnight
+                    -- line name (Forever audit, 2026-11-10)
+                    local match
+                    if def.lines then match = skillLine and def.lines[skillLine]
+                    else match = lineName and lineName == def.lineName end
+                    if match and (maxRank or 0) > 0 then v = { rank or 0, maxRank } end
                 end
             end
         end
@@ -62,6 +101,9 @@ local function Lookup(kind, name)
     local t = def.nodes[name]
     if not t then
         local base = name:gsub("^Transplanted ", "")
+        -- Forever: "Ooze Covered Silver Vein" needs the same skill as the plain vein
+        -- (Forever audit, 2026-11-10)
+        if def.forever then base = base:gsub("^Ooze Covered ", "") end
         t = def.nodes[base]
     end
     return t
@@ -75,9 +117,12 @@ function S:Color(kind, name)
     local lv = self:Level(kind)
     if not lv or lv[1] >= lv[2] then return nil end   -- not learned / maxed
     local s, y, g = lv[1], t[1], t[2]
+    -- Forever entries carry t[3] = green and t[4] = skill needed: below it you can't
+    -- gather the node at all, so no colour (Forever audit, 2026-11-10)
+    if t[4] and s < t[4] then return nil end
     if s >= g then return "grey", t, lv end
     if s < y then return "orange", t, lv end
-    if s < (y + g) / 2 then return "yellow", t, lv end
+    if s < (t[3] or (y + g) / 2) then return "yellow", t, lv end
     return "green", t, lv
 end
 
@@ -95,11 +140,23 @@ local WHAT = {
 -- Tooltip line for a pin.
 function S:Tooltip(rec)
     local c, t, lv = self:Color(rec.k, rec.n)
-    if not c then return end
+    if not c then
+        -- Forever: say what skill a node you can't gather yet needs (Forever audit, 2026-11-10)
+        t, lv = Lookup(rec.k, rec.n), self:Level(rec.k)
+        if t and t[4] and lv and lv[1] < t[4] then
+            GameTooltip:AddLine(("%s %d/%d: needs %d to gather"):format(VG.SKILLUP[rec.k].label, lv[1], lv[2], t[4]),
+                1, 0.25, 0.25)
+        end
+        return
+    end
     local col = self.COLORS[c]
     GameTooltip:AddLine(("%s %d/%d: %s"):format(VG.SKILLUP[rec.k].label, lv[1], lv[2], WHAT[c]),
         col[1], col[2], col[3])
-    GameTooltip:AddLine(("Yellow at %d, grey at %d"):format(t[1], t[2]), 0.6, 0.6, 0.6)
+    if t[3] then   -- Forever: Classic has a fixed green step too (Forever audit, 2026-11-10)
+        GameTooltip:AddLine(("Yellow at %d, green at %d, grey at %d"):format(t[1], t[3], t[2]), 0.6, 0.6, 0.6)
+    else
+        GameTooltip:AddLine(("Yellow at %d, grey at %d"):format(t[1], t[2]), 0.6, 0.6, 0.6)
+    end
 end
 
 -- One line per profession: your skill and which node types are orange /
@@ -111,7 +168,10 @@ function S:Summary(kind)
     local lv = def and self:Level(kind)
     if not lv then return nil end
     if lv[1] >= lv[2] then
-        local maxed = ("%s %d/%d: maxed"):format(def.label, lv[1], lv[2])
+        -- Forever: 75/150/225 is a rank cap, not the end (Forever audit, 2026-11-10)
+        local maxed = (def.forever and lv[2] < 300)
+            and ("%s %d/%d: at the cap, train the next rank"):format(def.label, lv[1], lv[2])
+            or ("%s %d/%d: maxed"):format(def.label, lv[1], lv[2])
         return maxed, maxed
     end
     local orange, yellow, green = {}, {}, 0

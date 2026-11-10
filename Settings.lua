@@ -426,6 +426,12 @@ function S:Refresh()
     end
     y = y - 8
 
+    -- Forever: Goals/CraftData only hold Midnight recipes, so "Add a goal" was an empty
+    -- menu there: no crafting-goals section on Forever (Forever audit, 2026-11-10)
+    if VG.IS_FOREVER then
+        w.goalHead:Hide(); w.goalHint:Hide(); w.goalAdd:Hide()
+        for _, row in ipairs(w.goalRows) do row:Hide() end
+    else
     place(w.goalHead, 18)
     local goals = VG.Goals:List()
     local more = #goals - GOAL_ROWS
@@ -459,6 +465,7 @@ function S:Refresh()
     w.goalAdd:SetPoint("TOPLEFT", PAD + 4, y)
     w.goalAdd:Show()
     y = y - 22 - 8
+    end   -- not VG.IS_FOREVER (Forever audit, 2026-11-10)
 
     place(w.hudHead, 18)
     for _, cb in ipairs(w.hudChecks) do cb:Update(); place(cb, 20, 4) end

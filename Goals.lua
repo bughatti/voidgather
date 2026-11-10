@@ -236,6 +236,10 @@ end
 -- the warband bank, ["Name-Realm"] = another character's last count }.
 -- VoidAH's leveling plan uses it to take what you own off the shopping list.
 function G:Where(ids)
+    -- Forever: only Midnight materials are counted for alts, so this answered 0 for them;
+    -- nil makes VoidProf's planner (Planner.lua Owned) fall back to its own count
+    -- (Forever audit, 2026-11-10)
+    if VG.IS_FOREVER then return nil end
     local here = sum(ids, false)
     local out = { here = here, warband = sum(ids, true) - here }
     for k in pairs(others()) do

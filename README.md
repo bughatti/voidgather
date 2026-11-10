@@ -14,6 +14,7 @@ VoidGather builds your gathering routes as you play. Every vein, herb, skinnable
 
 ### Your spots, on your map
 - **Saved automatically** — gather a node and its spot appears on the world map and minimap, named ("Copper Vein", "Peacebloom", "Thalassian Lumber")
+- **Point at a dot, save the node** — hover a herb or ore dot on your minimap (Find Herbs / Find Minerals) and VoidGather saves that node where the dot is, without gathering it, and shares it like your other spots. Its tooltip says "You saw a node here"; gather there later and it becomes a normal spot
 - **Lumber too** — Midnight's housing lumber counts, no profession needed
 - **Settles on the exact spot** — gathering the same node again refines its position instead of adding a duplicate
 - **Stays out of your way** — small colored diamonds (blue mining, green herbs, white skinning, teal lumber) drawn underneath quest markers, flight points and entrances

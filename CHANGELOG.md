@@ -1,5 +1,9 @@
 # VoidGather Changelog
 
+## 0.4.17
+
+- **Point at a dot, save the node.** Hover a herb or ore dot on your minimap (Find Herbs / Find Minerals) and VoidGather saves that node right where the dot is, without you gathering it, and shares it like your other new spots. Its tooltip says "You saw a node here on the minimap"; gather there later and it becomes a normal spot. Only names VoidGather knows as herbs and ores are saved.
+
 ## 0.4.16
 
 - **WoW Forever:** Herbalism and Mining skill now read correctly there: node skill colours, the Settings skill rows and `/vg best` work (it says when you're at a rank cap). Crafting goals and the lumber option are hidden there.

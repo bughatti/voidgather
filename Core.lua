@@ -264,6 +264,32 @@ function VG:Record(kind, name, mapID, x, y)
     return r, true
 end
 
+-- A live node you saw on the minimap: you pointed at its dot (HoverNodes.lua, MinimapHover.lua).
+-- Kept with your own spots but not counted as a gather (c = 0, seen = when); gathering there
+-- later makes it a normal spot (Record averages with weight c, so it moves to where you stood).
+-- Returns the record and whether it's new.
+function VG:RecordSeen(kind, name, mapID, x, y)
+    seedCache[mapID] = nil
+    local list = nodesFor(mapID)
+    local radius = VG.KINDS[kind].merge
+    for _, r in ipairs(list) do
+        if r.k == kind and (r.n == name or r.n == "?") then
+            local d = VG:Yards(mapID, r.x, r.y, x, y)
+            if d and d <= radius then
+                r.seen = time()
+                -- a spot named "?" (name was hidden when you gathered) gets the dot's name: new
+                -- information, so it refreshes and is shared (Sol review)
+                if r.n == "?" and name ~= "?" then r.n = name; return r, true end
+                return r, false
+            end
+        end
+    end
+    dropShared(mapID, kind, name, x, y)   -- yours now: it's drawn as your spot
+    local r = { k = kind, n = name, x = x, y = y, c = 0, t = time(), seen = time() }
+    list[#list + 1] = r
+    return r, true
+end
+
 -- counts[kind] = your spots, shared[kind] = spots from other players (and the seed)
 function VG:CountNodes(mapID)
     local counts, shared = {}, {}
@@ -334,6 +360,10 @@ function VG:TooltipSource(r, shared)
         if (r.c or 1) < 2 then
             GameTooltip:AddLine("Unconfirmed until a second player reports it", 0.6, 0.6, 0.6)
         end
+    elseif (r.c or 1) == 0 then
+        -- a node you pointed at on the minimap, not gathered yet (RecordSeen)
+        local seenAgo = SecondsToTime(math.max(60, time() - (r.seen or r.t or time())), true)
+        GameTooltip:AddLine(("You saw a node here on the minimap · %s ago"):format(seenAgo), 0.8, 0.8, 0.8)
     else
         GameTooltip:AddLine(("You gathered here %d time%s · last %s ago"):format(r.c or 1,
             (r.c or 1) == 1 and "" or "s", ago), 0.8, 0.8, 0.8)

@@ -360,8 +360,12 @@ local function printOnline()
     elseif not others then
         print(VG.PREFIX .. " couldn't read " .. CHANNEL_NAME .. "'s member list yet, try again in a few seconds.")
     else
-        print(("%s %s%d|r other VoidGather player%s online (WoW Forever can't count by zone)."):format(VG.PREFIX,
+        print(("%s %s%d|r other VoidGather player%s of your faction online (WoW Forever can't count by zone)."):format(VG.PREFIX,
             others > 0 and "|cff33ff33" or "|cffffd200", others, others == 1 and " is" or "s are"))
+    end
+    -- whispers that came back "No player named X" (2026-11-10: the other faction's all did, uncounted)
+    if net.bounces > 0 then
+        print(("%s %d whisper%s bounced this session (player not reachable)."):format(VG.PREFIX, net.bounces, net.bounces == 1 and "" or "s"))
     end
 end
 
@@ -648,9 +652,13 @@ function Sync:Init()
     if Net and Net.Active() then
         daily = true
         local today
+        -- one channel per faction since 2026-11-10 (WhisperNet.lua: whispers don't cross factions)
         CHANNEL_NAME, CHANNEL_PW, today = Net.DailyChannel(DAILY_TAG, DAILY_SALT)
-        -- channels survive a /reload: yesterday's goes too (reload across 00:00 UTC, Codex)
-        table.insert(OLD_CHANNELS, (Net.DailyChannel(DAILY_TAG, DAILY_SALT, today - 1)))
+        -- channels survive a /reload: yesterday's goes too (reload across 00:00 UTC, Codex),
+        -- and the old both-factions ones
+        for _, old in ipairs(Net.OldDailyChannels(DAILY_TAG, DAILY_SALT, today)) do
+            table.insert(OLD_CHANNELS, old)
+        end
         -- WoW Forever: the channel is a member list, messages go by addon whisper
         -- offline marks (players whose whisper bounced): this session only, never saved (the user,
         -- 2026-11-09: "get rid of the offline list"); the old saved list is deleted

@@ -1,5 +1,9 @@
 # VoidGather Changelog
 
+## 0.4.18
+
+- **WoW Forever: sharing per faction.** The sharing channel listed both factions, but whispers don't cross factions, so every message to the other side bounced and the players box counted people you couldn't reach. Horde and Alliance now each have their own channel. `/vg net` shows how many whispers bounced. Older versions stay on the old channel: please update.
+
 ## 0.4.17
 
 - **Point at a dot, save the node.** Hover a herb or ore dot on your minimap (Find Herbs / Find Minerals) and VoidGather saves that node right where the dot is, without you gathering it, and shares it like your other new spots. Its tooltip says "You saw a node here on the minimap"; gather there later and it becomes a normal spot. Only names VoidGather knows as herbs and ores are saved.

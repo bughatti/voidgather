@@ -1,5 +1,10 @@
 # VoidGather Changelog
 
+## 0.4.19
+
+- **One node, one spot.** A herb or ore dot you hover is read to about 10 yards, and the cursor drifts a little on it, so one node could be saved (and shared) as 3 or 4 spots. A hovered node now merges with your spot of it within 25 yards, and gathering it later moves that spot to where you stood.
+- **Zone catch-up retries.** When you log in, the list of other players can still be loading; asking for the zone's spots now tries again a few times instead of waiting for your next zone change.
+
 ## 0.4.18
 
 - **WoW Forever: sharing per faction.** The sharing channel listed both factions, but whispers don't cross factions, so every message to the other side bounced and the players box counted people you couldn't reach. Horde and Alliance now each have their own channel. `/vg net` shows how many whispers bounced. Older versions stay on the old channel: please update.

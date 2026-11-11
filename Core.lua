@@ -238,6 +238,9 @@ local function dropShared(mapID, kind, name, x, y)
     end
 end
 
+-- how far a node seen on the minimap may be from your spot of it (hover readings: +-10 yd)
+local SEEN_MERGE = 25
+
 -- Add or merge a gathered node. Returns the record and whether it was new.
 function VG:Record(kind, name, mapID, x, y)
     dropShared(mapID, kind, name, x, y)
@@ -248,7 +251,9 @@ function VG:Record(kind, name, mapID, x, y)
         -- "?" = name hidden at cast time (loot names it later): match either way
         if r.k == kind and (r.n == name or r.n == "?" or name == "?") then
             local d = VG:Yards(mapID, r.x, r.y, x, y)
-            if d and d <= radius then
+            -- a node you only saw on the minimap (c = 0) is +-10 yd off: gathering within
+            -- SEEN_MERGE of it is that node, and moves it to where you stand (weight c = 0)
+            if d and (d <= radius or ((r.c or 1) == 0 and d <= SEEN_MERGE)) then
                 if r.n == "?" and name ~= "?" then r.n = name end
                 -- nudge toward the average so repeated gathers settle on the spot
                 r.x = (r.x * r.c + x) / (r.c + 1)
@@ -268,10 +273,13 @@ end
 -- Kept with your own spots but not counted as a gather (c = 0, seen = when); gathering there
 -- later makes it a normal spot (Record averages with weight c, so it moves to where you stood).
 -- Returns the record and whether it's new.
+-- A hover reading is good to about +-10 yd and the cursor drifts on the dot: one Mageroyal became
+-- 4 spots 13 yd apart (2026-11-10, seen on a second player's client). So a seen node merges with
+-- any of your spots of that node within SEEN_MERGE.
 function VG:RecordSeen(kind, name, mapID, x, y)
     seedCache[mapID] = nil
     local list = nodesFor(mapID)
-    local radius = VG.KINDS[kind].merge
+    local radius = math.max(VG.KINDS[kind].merge, SEEN_MERGE)
     for _, r in ipairs(list) do
         if r.k == kind and (r.n == name or r.n == "?") then
             local d = VG:Yards(mapID, r.x, r.y, x, y)

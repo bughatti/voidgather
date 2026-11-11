@@ -189,12 +189,26 @@ function Sync:Share(mapID, rec)
     sendSpots("N", mapID, { rec }, targets(FANOUT))
 end
 
-function Sync:Ask(mapID)
+function Sync:Ask(mapID, tries)
     if not (enabled() and mapID and netIndex()) then return end
     if lastQuery[mapID] and GetTime() - lastQuery[mapID] < QUERY_CD then return end
     if net then
         net:RequestRoster()
-        if #net.roster == 0 then return end   -- nobody to ask yet; try again on the next zone change
+        if #net.roster == 0 then
+            -- nobody to ask YET: the member list can still be loading (four Void addons take turns
+            -- reading it at login). Try again a few times, while you're still on that map (2026-11-10).
+            tries = (tries or 0) + 1
+            -- one pending retry per map: zoning out and back in mustn't start a second chain (Sol review)
+            Sync.askRetry = Sync.askRetry or {}
+            if tries <= 3 and (tries > 1 or not Sync.askRetry[mapID]) then
+                Sync.askRetry[mapID] = true
+                C_Timer.After(10, function()
+                    Sync.askRetry[mapID] = nil
+                    if C_Map.GetBestMapForUnit("player") == mapID then Sync:Ask(mapID, tries) end
+                end)
+            end
+            return
+        end
         lastQuery[mapID] = GetTime()
         for _, to in ipairs(net:Pick(ASK_PEERS)) do send(("Q:%s:%d"):format(PROTO, mapID), false, to) end
         return

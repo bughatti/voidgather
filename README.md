@@ -1,4 +1,4 @@
-# VoidGather
+# VoidGather - Herb, Ore & Skinning Node Map
 
 **Works on:** WoW Midnight · WoW Forever
 
@@ -136,4 +136,4 @@ VoidGather builds your gathering routes as you play. Every vein, herb, skinnable
 
 ---
 
-*Part of the Void addon family by Vede · MIT licensed · [Source & bug reports](https://github.com/bughatti/voidgather) · [All Void addons](https://www.curseforge.com/members/bughatti/projects) · free M+ & raid player lookups at [voidscout.io](https://voidscout.io) · more at [tinkerline.io](https://tinkerline.io) · [Discord](https://discord.gg/7ZHmx7zMDh)*
+*Part of the Void addon family by Vede · MIT licensed · [Source & bug reports](https://github.com/bughatti/voidgather) · [All Void addons](https://www.curseforge.com/members/bughatti/projects) · free M+ & raid player lookups at [voidscout.io](https://voidscout.io) · more at [tinkerline.io](https://tinkerline.io/addons/voidgather/) · [Discord](https://discord.gg/7ZHmx7zMDh)*

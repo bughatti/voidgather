@@ -1,5 +1,10 @@
 # VoidGather Changelog
 
+## 0.4.20 — 2026-11-12
+
+- **The players-here box:** its tooltip no longer covers the box while you drag it, and it opens above or below the box depending on where the box sits on screen.
+- **Void hub button:** left-click opens one panel with all your Void addons by name, grouped, each with its own on/off switches (it replaces the ring of icons), with a background slider. The hub's info window now stays where you put it.
+
 ## 0.4.19
 
 - **One node, one spot.** A herb or ore dot you hover is read to about 10 yards, and the cursor drifts a little on it, so one node could be saved (and shared) as 3 or 4 spots. A hovered node now merges with your spot of it within 25 yards, and gathering it later moves that spot to where you stood.

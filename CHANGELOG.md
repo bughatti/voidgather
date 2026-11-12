@@ -1,5 +1,9 @@
 # VoidGather Changelog
 
+## 0.4.21 — 2026-11-12
+
+- **Fixed: a side of a box could be missing**, e.g. the right line of the recipes box and its buttons when the game window is an odd number of pixels wide. Every Void box now always shows all four border lines.
+
 ## 0.4.20 — 2026-11-12
 
 - **The players-here box:** its tooltip no longer covers the box while you drag it, and it opens above or below the box depending on where the box sits on screen.

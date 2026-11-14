@@ -1,5 +1,9 @@
 # VoidGather Changelog
 
+## 0.4.22 — 2026-11-14
+
+- **Fixed (WoW Forever): after the game's world refresh moved you to another layer,** VoidGather kept using the old one for up to 3 minutes, so picked nodes could be counted on the wrong layer. It now reads your new layer straight away.
+
 ## 0.4.21 — 2026-11-12
 
 - **Fixed: a side of a box could be missing**, e.g. the right line of the recipes box and its buttons when the game window is an odd number of pixels wide. Every Void box now always shows all four border lines.

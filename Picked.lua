@@ -71,6 +71,9 @@ local function near(mapID, x1, y1, x2, y2)
     return dx * dx + dy * dy <= NEAR_YARDS * NEAR_YARDS
 end
 
+-- a pick saved before 2026-11-14 holds "<server>-<own number>": compare the server number only (Layer.lua L.Canon)
+local function canon(p) local L = VG.Layer; return (L and L.Canon) and L.Canon(p) or p end
+
 local function layerFor(mapID)
     local L = VG.Layer
     return L and L:Current(L:Zone(mapID)) or nil
@@ -104,7 +107,7 @@ function P:Note(kind, mapID, x, y)
     -- counted, so gaps spanning several respawns pushed the estimate up)
     local prev
     for _, p in ipairs(byMap[mapID] or {}) do
-        if p.k == kind and p.layer == layer and near(mapID, p.x, p.y, x, y) and (not prev or p.t > prev.t) then
+        if p.k == kind and canon(p.layer) == layer and near(mapID, p.x, p.y, x, y) and (not prev or p.t > prev.t) then
             prev = p
         end
     end
@@ -135,7 +138,7 @@ function P:State(mapID, r)
     local mine, other
     for _, p in ipairs(byMap[mapID] or {}) do
         if p.k == r.k and now - p.t < respawn and near(mapID, p.x, p.y, r.x, r.y) then
-            if cur and p.layer and p.layer ~= cur then
+            if cur and p.layer and canon(p.layer) ~= cur then
                 if not other or p.t > other.t then other = p end
             elseif not mine or p.t > mine.t then
                 mine = p

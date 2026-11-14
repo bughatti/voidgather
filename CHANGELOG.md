@@ -1,5 +1,9 @@
 # VoidGather Changelog
 
+## 0.4.23 — 2026-11-14
+
+- **WoW Forever layers:** a picked node is tied to your layer by the layer's real number now (tested with two players side by side: the old number was different for every player), and a companion pet can't flip your layer any more.
+
 ## 0.4.22 — 2026-11-14
 
 - **Fixed (WoW Forever): after the game's world refresh moved you to another layer,** VoidGather kept using the old one for up to 3 minutes, so picked nodes could be counted on the wrong layer. It now reads your new layer straight away.

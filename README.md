@@ -37,8 +37,9 @@ VoidGather builds your gathering routes as you play. Every vein, herb, skinnable
 - **Easy to tell apart** — shared spots are smaller and faded, brighten once a second player confirms them, and become yours once you gather there
 - **Hover a shared pin** to see who found it and when
 - **Who's here** — entering a zone tells you how many other VoidGather players are in it (`/vg here` asks any time)
-- **Players-here box** — a small box you can drag anywhere that keeps that count on screen, updated as people come and go (VoidSweep players too, if you have it). Tick it in the settings window or `/vg box`
+- **Players-here box** — a small box you can drag anywhere that keeps that count on screen, updated as people come and go (on WoW Forever its **VoidNet** line counts every Void addon player online, each once). Tick it in the settings window or `/vg box`
 - **Turn sharing off** any time with `/vg share` or the settings window
+- **Help other players change layer (WoW Forever)** — VoidGather carries the Void layer helper: when a Void player on your layer asks (from VoidLayer or VoidSweep), you send them a quick group invite that ends on its own, only while you're solo and out of combat. A short pop-up says so once. **Help Void layer hopping** in the Void hub's quick switches turns it off (one switch for every Void addon)
 
 ### What your gathering is worth
 - **Gold per hour** — every herb, ore, skin, lumber and fish you loot is priced as it lands in your bags, and the session total and gold per hour add up as you go
@@ -114,6 +115,8 @@ VoidGather builds your gathering routes as you play. Every vein, herb, skinnable
 - **What's shared:** the kind of spot (mining, herb, skinning or lumber), the zone, its map position and the node's name. Nothing about your character, bags or gold. Your earnings stay on your computer.
 - Other players see the character name that shared a spot, the same as any addon message.
 - Shared spots only come from players' own gathers, never passed along second-hand, so one bad report can't spread.
+- **VoidNet (WoW Forever):** VoidGather, VoidLayer, VoidSweep, VoidQuest, VoidBounty and VoidDungeon players of your faction meet in **one** hidden channel whose name and password change every hour, with backups. If someone takes it over, bans or kicks Void players or changes its password, everyone moves to a backup and that player is ignored for 24 hours. Older VoidGather versions are still reached through the old channel, which goes 30 days after the last one updates.
+- **Kept on your computer (WoW Forever):** the Void players you heard from in the last 2 hours (names and a time, deleted after 2 hours, never shown or shared) and players marked for attacking the channel (24 hours).
 - With sharing off, VoidGather sends and receives nothing.
 
 ---

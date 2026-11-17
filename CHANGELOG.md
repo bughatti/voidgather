@@ -1,5 +1,11 @@
 # VoidGather Changelog
 
+## 0.4.24 — 2026-11-17
+
+- **VoidNet: one hidden channel for every Void addon (WoW Forever).** VoidLayer, VoidSweep, VoidQuest, VoidGather, VoidBounty and VoidDungeon now share ONE channel instead of one each. The Void players box shows **VoidNet** (every Void addon player online, each counted once) with **Layer helpers** under it. Players on an older version are still reached through the old channel, which goes away 30 days after the last of them updates.
+- **Harder to grief:** the channel name changes every hour, with backups. If someone takes the channel over, bans or kicks Void players, or changes its password, every Void addon moves to the backup and ignores that player for 24 hours (a report from others counts only when 3 different Void players saw it). Nothing is shown as a list of names.
+- **You can now help other players change layer** (WoW Forever): when a Void player on your layer asks, you send them a quick group invite, only while you're solo and out of combat. A short pop-up says so once. Don't want it? Turn it off with the hub's **Help Void layer hopping** switch (the same switch for every Void addon).
+
 ## 0.4.23 — 2026-11-14
 
 - **WoW Forever layers:** a picked node is tied to your layer by the layer's real number now (tested with two players side by side: the old number was different for every player), and a companion pet can't flip your layer any more.

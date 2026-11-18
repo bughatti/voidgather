@@ -209,26 +209,27 @@ function VG:SeedHas(kind, name, mapID, x, y)
     return false
 end
 
--- Add a spot someone else reported. Returns true if anything changed.
+-- Add a spot someone else reported. Returns true if anything changed, and what it brought:
+-- "new", "vote" (one more player backing it) or "had" (yours, settled, or the same player again).
 function VG:AddShared(kind, name, mapID, x, y, sender)
     for _, r in ipairs(nodesFor(mapID)) do
-        if sameSpot(mapID, r, kind, name, x, y) then return false end   -- you know it already
+        if sameSpot(mapID, r, kind, name, x, y) then return false, "had" end   -- you know it already
     end
     seedCache[mapID] = nil   -- a new shared spot may cover a seed spot
     local list = sharedFor(mapID)
     for _, r in ipairs(list) do
         if sameSpot(mapID, r, kind, name, x, y) then
-            if r.c >= CONFIRMED or r.by[sender] then return false end
+            if r.c >= CONFIRMED or r.by[sender] then return false, "had" end
             r.by[sender] = true
             r.c = r.c + 1
             r.t = time()
             if r.n == "?" and name ~= "?" then r.n = name end
-            return true
+            return true, self:SeedHas(kind, name, mapID, x, y) and "had" or "vote"
         end
     end
     if #list >= SHARED_CAP then table.remove(list, 1) end
     list[#list + 1] = { k = kind, n = name, x = x, y = y, c = 1, t = time(), f = sender, by = { [sender] = true } }
-    return true
+    return true, self:SeedHas(kind, name, mapID, x, y) and "had" or "new"   -- the shipped data has it: not new
 end
 
 local function dropShared(mapID, kind, name, x, y)

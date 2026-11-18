@@ -495,16 +495,30 @@ end
 -- Forever: whisper our own spots for a map back to the player who asked. Each
 -- asker gets one answer per REPLY_GAP (any map) and one per map per REPLY_CD,
 -- and only when there's something to say, so a stranger can't make us spam.
+-- What came in, counted in VoidGatherDB.netStats (the user, 2026-11-18: "is there a way to tell the
+-- difference between new data or new players asking for data we already have"): in_new (we had
+-- nothing there), in_vote (one more player backing a spot not settled yet), in_had (we have it:
+-- ours, settled, or the same player again); asks answered / with nothing to answer. /vg net, /vdnet.
+local function tally(what, tag)
+    if not VoidGatherDB then return end
+    local s = VoidGatherDB.netStats
+    if not s then s = { since = time() }; VoidGatherDB.netStats = s end
+    local b = s[what]
+    if not b then b = {}; s[what] = b end
+    b[tag] = (b[tag] or 0) + 1
+end
+
 local function answerWhisper(mapID, sender, replyTo)
     if not replyTo then return end
     local key, now = sender .. ":" .. mapID, GetTime()
     if lastReply[key] and now - lastReply[key] < REPLY_CD then return end
     if lastReplyTo[sender] and now - lastReplyTo[sender] < REPLY_GAP then return end
-    if #VG:NodesFor(mapID) == 0 then return end
+    if #VG:NodesFor(mapID) == 0 then tally("unanswered", "Q"); return end
     -- and one answer to anyone every ANSWER_EVERY seconds, so answers can't fill the
     -- queue and crowd out live spots
     if lastAnyReply and now - lastAnyReply < ANSWER_EVERY then return end
     lastReply[key], lastReplyTo[sender], lastAnyReply = now, now, now
+    tally("answered", "Q")
     local gen = Sync.gen
     C_Timer.After(1 + math.random() * 3, function()
         -- not if sharing was turned off in the meantime (even if it's back on)
@@ -522,7 +536,7 @@ local function scheduleRefresh()
     C_Timer.After(1, function() refreshPending = nil; VG:Refresh() end)
 end
 
-local function takeSpots(mapID, body, sender)
+local function takeSpots(mapID, body, sender, tag)
     local changed = false
     local n = 0
     for entry in body:gmatch("[^;]+") do
@@ -533,7 +547,9 @@ local function takeSpots(mapID, body, sender)
         if kind then
             local x, y = tonumber(xs) / 10000, tonumber(ys) / 10000
             if x > 0 and x < 1 and y > 0 and y < 1 then
-                if VG:AddShared(kind, cleanName(name), mapID, x, y, sender) then changed = true end
+                local ch, what = VG:AddShared(kind, cleanName(name), mapID, x, y, sender)
+                if ch then changed = true end
+                tally("in_" .. (what or "had"), tag or "B")
             end
         end
     end
@@ -573,9 +589,9 @@ function Sync:OnMessage(msg, sender, replyTo)
             replyTimer[mapID] = nil
             lastReply[mapID] = GetTime()
         end
-        takeSpots(mapID, body, sender)
+        takeSpots(mapID, body, sender, "B")
     elseif tag == "N" then
-        takeSpots(mapID, body, sender)
+        takeSpots(mapID, body, sender, "N")
     elseif (tag == "P" or tag == "H" or tag == "L") and body == "" and not net then
         onHere(tag, mapID, sender)
     end
@@ -788,7 +804,21 @@ local function channelMembers()
     end
 end
 
+local function printCameIn()
+    local s = VoidGatherDB and VoidGatherDB.netStats
+    if not s then return end
+    local function list(t)
+        local out = {}
+        for k, v in pairs(t or {}) do out[#out + 1] = k .. " " .. v end
+        table.sort(out)
+        return #out > 0 and table.concat(out, ", ") or "none"
+    end
+    print(("%s since %s, what came in -- new to us: %s | backing a spot not settled yet: %s | already had: %s | questions answered: %s | nothing to answer with: %s"):format(
+        VG.PREFIX, date("%b %d %H:%M", s.since), list(s.in_new), list(s.in_vote), list(s.in_had), list(s.answered), list(s.unanswered)))
+end
+
 function Sync:NetStats()
+    printCameIn()
     if net then
         net:RequestRoster(true)
         C_Timer.After(3.5, function()

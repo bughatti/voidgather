@@ -1,5 +1,9 @@
 # VoidGather Changelog
 
+## 0.4.26 — 2026-11-18
+
+- `/vg net` says what other players' spots brought: new to you, backing a spot that isn't settled yet, or already known; and how many questions you answered (or had nothing to answer with).
+
 ## 0.4.25 — 2026-11-17
 
 - **Layer helping finds players faster (WoW Forever).** A layer question now reaches the Void players it asks in about a second instead of eleven, so Refresh and hops see the other layers right away. Same message rate over time, well under the game's limit.

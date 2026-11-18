@@ -2,6 +2,7 @@
 
 ## 0.4.26 — 2026-11-18
 
+- **A bigger starter map on WoW Forever:** 962 gathering spots in 19 zones (was 90 in 5), from Void players' own gathering, each spot confirmed by 2+ players.
 - `/vg net` says what other players' spots brought: new to you, backing a spot that isn't settled yet, or already known; and how many questions you answered (or had nothing to answer with).
 
 ## 0.4.25 — 2026-11-17

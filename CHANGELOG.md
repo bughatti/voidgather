@@ -1,5 +1,9 @@
 # VoidGather Changelog
 
+## 0.4.27 — 2026-11-20
+
+- **More gathering spots (WoW Forever).** Updated with the herb and ore spots VoidGather players shared, now from both factions.
+
 ## 0.4.26 — 2026-11-18
 
 - **A bigger starter map on WoW Forever:** 962 gathering spots in 19 zones (was 90 in 5), from Void players' own gathering, each spot confirmed by 2+ players.

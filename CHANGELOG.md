@@ -1,5 +1,10 @@
 # VoidGather Changelog
 
+## 0.4.28 — 2026-11-20
+
+- **More gathering spots (WoW Forever).** 31 more herb and ore spots shared by players (1,147 in all), the first in Azshara among them.
+- **English names only.** A spot shared by a player whose game is in another language is used only with its English name, so a herb never shows up under a foreign name.
+
 ## 0.4.27 — 2026-11-20
 
 - **More gathering spots (WoW Forever).** Updated with the herb and ore spots VoidGather players shared, now from both factions.

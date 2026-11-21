@@ -85,6 +85,9 @@ local zooming = false      -- our own SetZoom, which the zoom hook lets through
 local function otherPin(obj)
     local name = obj.GetName and obj:GetName()
     if name and (name:find("^GatherMate") or name:find("^HandyNotes")) then return true end
+    -- Questie's minimap icons (its own private HereBeDragons copy, so not in the LibStub one below): its
+    -- QuestieFrameN pins, and the QuestieFrameGroup that holds them (the user, 2026-11-21: Questie next to ours)
+    if name and name:find("^QuestieFrame") then return true end
     local HBD = LibStub and LibStub("HereBeDragons-Pins-2.0", true)
     return HBD and HBD.minimapPins and HBD.minimapPins[obj] ~= nil
 end

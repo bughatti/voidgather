@@ -1,5 +1,9 @@
 # VoidGather Changelog
 
+## 0.4.29 — 2026-11-21
+
+- **Minimap HUD keeps Questie's icons.** With the HUD on, Questie's quest icons stay on the minimap where they belong.
+
 ## 0.4.28 — 2026-11-20
 
 - **More gathering spots (WoW Forever).** 31 more herb and ore spots shared by players (1,147 in all), the first in Azshara among them.

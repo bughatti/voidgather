@@ -136,7 +136,9 @@ end
 ----------------------------------------------------------------------
 function E:Price(id)
     local db = _G.VoidUIAuctionDB
-    local realm = db and db[GetRealmName()]
+    -- VoidAH's own realm key: GetRealmName() can be blank on Forever (2026-11-21)
+    local AHm = _G.VoidUI and _G.VoidUI.AH
+    local realm = db and db[(AHm and AHm.Realm and AHm.Realm()) or GetRealmName()]
     local entry = realm and realm[tostring(id)]
     if type(entry) == "table" and (entry.m or 0) > 0 then return entry.m, "VoidAH" end
     local A = _G.Auctionator

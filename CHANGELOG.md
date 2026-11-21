@@ -1,5 +1,9 @@
 # VoidGather Changelog
 
+## 0.4.30 — 2026-11-21
+
+- **Fixed on WoW Forever: earnings without prices.** The game stopped telling addons your realm's name, so the earnings window found no VoidAH prices and your per-character settings weren't loaded. Both work again, from where they were saved before.
+
 ## 0.4.29 — 2026-11-21
 
 - **Minimap HUD keeps Questie's icons.** With the HUD on, Questie's quest icons stay on the minimap where they belong.

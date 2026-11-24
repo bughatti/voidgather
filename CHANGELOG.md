@@ -1,5 +1,9 @@
 # VoidGather Changelog
 
+## 0.4.31 — 2026-11-24
+
+- **Layers work again after the game's November 20 update (WoW Forever).** The update gave every NPC a number of its own, so the layer read off the NPCs around you kept jumping. The layer engine every Void addon shares (from VoidLayer 0.6.0) now names your layer itself and lets the game keep the name right: a world refresh or a hop gives you a new name, Void players who turn out to be on one layer take one name, and a layer hop turns down an invite from a helper who's on your layer already.
+
 ## 0.4.30 — 2026-11-21
 
 - **Fixed on WoW Forever: earnings without prices.** The game stopped telling addons your realm's name, so the earnings window found no VoidAH prices and your per-character settings weren't loaded. Both work again, from where they were saved before.

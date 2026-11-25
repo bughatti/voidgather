@@ -533,7 +533,9 @@ end
 local function scheduleRefresh()
     if refreshPending then return end
     refreshPending = true
-    C_Timer.After(1, function() refreshPending = nil; VG:Refresh() end)
+    -- spots shared by other players: into the pins once a minute (the user, 2026-11-24: "static pins, and update
+    -- every 1 min, just the changes"); your own gathers still show at once (Gather.lua)
+    C_Timer.After(60, function() refreshPending = nil; VG:Refresh() end)
 end
 
 local function takeSpots(mapID, body, sender, tag)

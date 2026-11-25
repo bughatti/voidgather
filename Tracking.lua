@@ -45,7 +45,8 @@ do
     local ev = CreateFrame("Frame")
     ev:RegisterEvent("MINIMAP_UPDATE_TRACKING")
     ev:RegisterEvent("PLAYER_ENTERING_WORLD")
-    ev:SetScript("OnEvent", function() trackedCache = nil end)
+    -- the pins mark tracked kinds differently (ticks around the game's dot): re-place them now
+    ev:SetScript("OnEvent", function() trackedCache = nil; if VG.Minimap then VG.Minimap:Invalidate() end end)
 end
 
 local function safeToSwitch()

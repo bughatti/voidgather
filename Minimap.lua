@@ -73,12 +73,39 @@ local function hideRest()
     for i = nActive + 1, #pool do pool[i]:Hide(); pool[i].rec = nil end
 end
 
-function MM:Invalidate() cacheMap = nil end
+-- Static pins (perf pass 2026-11-24, the user: "static, update less often"): this ran every frame, ~80 times a
+-- second, re-placing every pin even standing still (0.19 ms a frame, the 2nd most expensive Void addon). Now the
+-- pins stay put while nothing that moves them changed: map, your spot, facing, minimap zoom / size, HUD. Anything
+-- else (skill-ups, settings, new or shared nodes, tracking) calls Invalidate (VG:Refresh), which re-places them once.
+-- No timer (the user: "why do the pins need to update every 1 sec"): nothing is redrawn that didn't change.
+-- Round 2 (measured 2026-11-25 in fights: 0.27 ms a frame, 1.7 million Skill:Hidden calls): facing only counts when
+-- the minimap rotates (in a fight you turn all the time), and what each node LOOKS like (shown or hidden, skill
+-- colour, alpha) is worked out once per change into vlist; a frame only does the position math. A pin already
+-- showing that node with that look isn't restyled (styleVer).
+local last = { dirty = true }
+local vlist, styleVer = nil, 0
+function MM:Invalidate() cacheMap = nil; last.dirty = true; vlist = nil end
 
 function MM:Update()
-    nActive = 0
     local cfg = VG:Config()
-    if not cfg.showMinimap then hideRest(); return end
+    if not cfg.showMinimap then nActive = 0; hideRest(); last.dirty = true; return end
+    do
+        local m = C_Map.GetBestMapForUnit("player")
+        local pp = m and C_Map.GetPlayerMapPosition(m, "player")
+        local x, y
+        if pp then x, y = pp:GetXY() end
+        local rot = GetCVar("rotateMinimap")
+        local f = rot == "1" and (GetPlayerFacing() or 0) or 0   -- turning moves nothing on a north-up minimap
+        local r = (C_Minimap and C_Minimap.GetViewRadius and C_Minimap.GetViewRadius()) or 0
+        local wd = Minimap:GetWidth()
+        local hud = VG.HUD:IsActive()
+        if not last.dirty and m == last.m and x == last.x and y == last.y and f == last.f and r == last.r
+           and wd == last.w and hud == last.hud and rot == last.rot then
+            return   -- nothing moved, nothing changed: the pins are right where they are
+        end
+        last.m, last.x, last.y, last.f, last.r, last.w, last.hud, last.rot, last.dirty = m, x, y, f, r, wd, hud, rot, false
+    end
+    nActive = 0
 
     local mapID = C_Map.GetBestMapForUnit("player")
     if not mapID then hideRest(); return end
@@ -90,6 +117,7 @@ function MM:Update()
     if cacheMap ~= mapID then
         cacheMap, cacheOwn, cacheShared = mapID, VG:NodesFor(mapID), VG:SharedFor(mapID)
         cacheSeed = VG:SeedFor(mapID)   -- spots VoidGather ships with (Seed.lua)
+        vlist = nil
     end
 
     local px, py = ppos:GetXY()
@@ -102,21 +130,36 @@ function MM:Update()
     local sinF, cosF = math.sin(facing), math.cos(facing)
     local baseSize = VG.HUD:IsActive() and (cfg.hudPinSize or 16) or cfg.mmPinSize or 11
     local mmAlpha = cfg.mmAlpha or 0.7
-    -- visibility per kind once per frame, not VG:Visible() per record
-    local vis, around = {}, {}
-    for k in pairs(VG.KINDS) do
-        vis[k] = VG:Visible(k)
-        -- the game shows live nodes of this kind as yellow dots: our pins can never cover
-        -- them (child frames always draw over the minimap's own dots), so they mark the
-        -- spot from around it instead (the user, 2026-11-07)
-        around[k] = VG.Tracking and VG.Tracking.GameTracks and VG.Tracking:GameTracks(k) or false
-    end
     local hud = VG.HUD:IsActive()
 
-    local function place(list, shared)
+    -- the nodes to show and how they look: once per change (map, Invalidate), not per frame
+    if not vlist then
+        vlist, styleVer = {}, styleVer + 1
+        local vis, around = {}, {}
+        for k in pairs(VG.KINDS) do
+            vis[k] = VG:Visible(k)
+            -- the game shows live nodes of this kind as yellow dots: our pins can never cover
+            -- them (child frames always draw over the minimap's own dots), so they mark the
+            -- spot from around it instead (the user, 2026-11-07)
+            around[k] = VG.Tracking and VG.Tracking.GameTracks and VG.Tracking:GameTracks(k) or false
+        end
+        local function add(list, shared)
+            for _, r in ipairs(list) do
+                if vis[r.k] and not VG.Skill:Hidden(r) then
+                    local c = VG.Skill:Color(r.k, r.n)
+                    vlist[#vlist + 1] = { r = r, shared = shared, c = c, col = c and VG.Skill.COLORS[c], around = around[r.k],
+                                          alpha = VG:PinAlpha(r, shared, mapID) * (c == "grey" and 0.35 or 1) }
+                end
+            end
+        end
+        add(cacheSeed, true); add(cacheShared, true); add(cacheOwn, false)
+    end
+
+    for _, v in ipairs(vlist) do
+        local r, shared = v.r, v.shared
         local size = shared and math.max(7, baseSize - 2) or baseSize
-        for _, r in ipairs(list) do
-            if vis[r.k] and not VG.Skill:Hidden(r) then
+        do
+            do
                 local sx = (r.x - px) * w * scale
                 local sy = -((r.y - py) * h) * scale
                 if rotate then sx, sy = sx * cosF + sy * sinF, -sx * sinF + sy * cosF end
@@ -124,11 +167,13 @@ function MM:Update()
                 if dist2 <= (half - 4) * (half - 4) then
                     local p = acquire()
                     local def = VG.KINDS[r.k]
-                    p.rec, p.shared = r, shared
-                    p:SetSize(size, size)
-                    local c = VG.Skill:Color(r.k, r.n)
-                    local col = c and VG.Skill.COLORS[c]
-                    if around[r.k] then
+                    local c, col = v.c, v.col
+                    local same = p.rec == r and p.styleVer == styleVer and p.styleSize == size and p.styleHud == hud
+                    p.rec, p.shared, p.styleVer, p.styleSize, p.styleHud = r, shared, styleVer, size, hud
+                    if same then
+                        -- the same node with the same look: only where it sits changes (below)
+                    elseif v.around then
+                        p:SetSize(size, size)
                         -- four ticks just outside the game's dot, in the skill-up color
                         -- (else the kind's); nothing over the middle
                         p.ring:Hide(); p.frame:Hide(); p.icon:Hide()
@@ -142,6 +187,7 @@ function MM:Update()
                         end
                         setMouse(p, false)
                     else
+                        p:SetSize(size, size)
                         for _, t in ipairs(p.ticks) do t:Hide() end
                         p.ring:Show(); p.icon:Show()
                         p.ring:SetSize(size + 3, size + 3)
@@ -158,16 +204,13 @@ function MM:Update()
                         setMouse(p, not hud)
                     end
                     local edge = dist2 > (half * 0.75) ^ 2 and 0.55 or 1
-                    p:SetAlpha(mmAlpha * edge * VG:PinAlpha(r, shared, mapID) * (c == "grey" and 0.35 or 1))
+                    p:SetAlpha(mmAlpha * edge * v.alpha)
                     p:ClearAllPoints()
                     p:SetPoint("CENTER", Minimap, "CENTER", sx, sy)
                 end
             end
         end
     end
-    place(cacheSeed, true)
-    place(cacheShared, true)
-    place(cacheOwn, false)
     hideRest()
 end
 

@@ -1,5 +1,9 @@
 # VoidGather Changelog
 
+## 0.4.32 — 2026-11-25
+
+- **Lighter on your computer.** Minimap nodes are drawn once and only move when you move, turn or zoom (no more redrawing every second), and nodes shared by other players are added once a minute.
+
 ## 0.4.31 — 2026-11-24
 
 - **Layers work again after the game's November 20 update (WoW Forever).** The update gave every NPC a number of its own, so the layer read off the NPCs around you kept jumping. The layer engine every Void addon shares (from VoidLayer 0.6.0) now names your layer itself and lets the game keep the name right: a world refresh or a hop gives you a new name, Void players who turn out to be on one layer take one name, and a layer hop turns down an invite from a helper who's on your layer already.

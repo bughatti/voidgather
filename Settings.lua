@@ -322,9 +322,9 @@ local function build()
             function() cfg.showMinimap = not cfg.showMinimap; VG:Refresh() end),
     }
     w.size = choice(f, "Minimap pin size", { { "Small", 9 }, { "Medium", 11 }, { "Large", 13 } },
-        function() return cfg.mmPinSize or 11 end, function(v) cfg.mmPinSize = v end)
+        function() return cfg.mmPinSize or 11 end, function(v) cfg.mmPinSize = v; VG:Refresh() end)
     w.alpha = choice(f, "Minimap pin opacity", { { "50%", 0.5 }, { "70%", 0.7 }, { "100%", 1 } },
-        function() return cfg.mmAlpha or 0.7 end, function(v) cfg.mmAlpha = v end)
+        function() return cfg.mmAlpha or 0.7 end, function(v) cfg.mmAlpha = v; VG:Refresh() end)
 
     -- Gathering helpers
     w.trackSecs = choice(f, "Switch every", { { "3 s", 3 }, { "5 s", 5 }, { "8 s", 8 }, { "10 s", 10 } },

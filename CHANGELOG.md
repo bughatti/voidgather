@@ -1,5 +1,9 @@
 # VoidGather Changelog
 
+## 0.4.33 — 2026-11-25
+
+- **VoidHub window (WoW Forever):** right-click the VoidHub minimap button (or type /vhub) for every Void addon in one window: quests, layers, gear, gold, professions, combat, dungeons and more, each drawn from its own addon, with a Start page for what to do right now. Addons you don't have show a screenshot and how to get them. Shift + right-click opens Copy settings from another character. It comes inside every Void addon: nothing extra to install.
+
 ## 0.4.32 — 2026-11-25
 
 - **Lighter on your computer.** Minimap nodes are drawn once and only move when you move, turn or zoom (no more redrawing every second), and nodes shared by other players are added once a minute.
